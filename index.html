@@ -17,15 +17,7 @@
     flex-direction: column;
   }
 
-.screen {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    padding: 20px;
-  }
-
+.screen { display: none; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; }
 .screen.active { display: flex; }
 
 .btn {
@@ -36,10 +28,7 @@
   }
 .btn:active { transform: scale(0.95); }
 
-.btn-secondary {
-    background: transparent;
-    border: 2px solid rgba(255,255,255,0.3);
-  }
+.btn-secondary { background: transparent; border: 2px solid rgba(255,255,255,0.3); }
 
 .btn-grid {
     display: grid;
@@ -59,15 +48,7 @@
     text-align: center;
   }
 
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 20px;
-    width: 100%;
-    flex-shrink: 0;
-  }
-
+.header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; width: 100%; flex-shrink: 0; }
 .score { font-size: 32px; font-weight: bold; }
 .highscore { color: #fbbf24; font-size: 18px; font-weight: bold; }
 
@@ -93,14 +74,8 @@
     aspect-ratio: 1;
   }
 
-.cell {
-    background: rgba(0,0,0,0.4);
-    border-radius: 6px;
-  }
-
-.cell.filled {
-    border-radius: 8px;
-  }
+.cell { background: rgba(0,0,0,0.4); border-radius: 6px; }
+.cell.filled { border-radius: 8px; }
 
 .blocks-container {
     display: flex;
@@ -122,32 +97,17 @@
     touch-action: manipulation;
   }
 
-.block-piece.selected {
-    background: rgba(255,255,255,0.25);
-    transform: scale(1.1);
-  }
-
-.block-cell {
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
-    pointer-events: none;
-  }
+.block-piece.selected { background: rgba(255,255,255,0.25); transform: scale(1.1); }
+.block-cell { width: 28px; height: 28px; border-radius: 6px; pointer-events: none; }
 
 .popup {
     position: absolute;
-    top: 50%;
-    left: 50%;
+    top: 50%; left: 50%;
     transform: translate(-50%, -50%);
     background: rgba(15, 23, 42, 0.95);
-    padding: 30px;
-    border-radius: 20px;
-    text-align: center;
-    display: none;
-    border: 2px solid #6366f1;
-    z-index: 10;
+    padding: 30px; border-radius: 20px; text-align: center;
+    display: none; border: 2px solid #6366f1; z-index: 10;
   }
-
 .popup.active { display: block; }
 
 h1, h2 { color: white; text-align: center; }
@@ -211,9 +171,7 @@ const blockShapes = [
   [[1,1,1],[0,1,0]]
 ];
 
-const dailyLevels = Array.from({length: 30}, (_, i) => ({
-  target: 200 + i * 100
-}));
+const dailyLevels = Array.from({length: 30}, (_, i) => ({ target: 200 + i * 100 }));
 
 function showScreen(screenId) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -315,7 +273,6 @@ function selectBlock(index) {
 
 function handleBoardClick(x, y) {
   if (!selectedBlock) return;
-
   if (canPlaceBlock(selectedBlock, x, y)) {
     placeBlock(selectedBlock, x, y);
   }
@@ -385,9 +342,7 @@ function checkLines() {
     }
   }
 
-  if (linesCleared > 0) {
-    score += linesCleared * 100;
-  }
+  if (linesCleared > 0) score += linesCleared * 100;
 }
 
 function canPlaceAnyBlock() {
@@ -402,16 +357,18 @@ function canPlaceAnyBlock() {
 }
 
 function renderBoard() {
-  const cells = document.querySelectorAll('#board.cell'); // PAKAI SPASI
+  const cells = document.querySelectorAll('#board.cell'); // <-- PENTING: ADA SPASI
   for (let y = 0; y < boardSize; y++) {
     for (let x = 0; x < boardSize; x++) {
       const cell = cells[y * boardSize + x];
-      if (board[y][x]) {
-        cell.className = 'cell filled';
-        cell.style.background = board[y][x];
-      } else {
-        cell.className = 'cell';
-        cell.style.background = '';
+      if (cell) {
+        if (board[y][x]) {
+          cell.className = 'cell filled';
+          cell.style.background = board[y][x];
+        } else {
+          cell.className = 'cell';
+          cell.style.background = '';
+        }
       }
     }
   }
