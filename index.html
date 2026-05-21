@@ -315,14 +315,11 @@ function selectBlock(index) {
 
 function handleBoardClick(x, y) {
   if (!selectedBlock) {
-    alert('Pilih blok dulu bro!');
     return;
   }
 
   if (canPlaceBlock(selectedBlock, x, y)) {
     placeBlock(selectedBlock, x, y);
-  } else {
-    navigator.vibrate && navigator.vibrate(50);
   }
 }
 
@@ -392,7 +389,6 @@ function checkLines() {
 
   if (linesCleared > 0) {
     score += linesCleared * 100;
-    navigator.vibrate && navigator.vibrate(100);
   }
 }
 
@@ -408,7 +404,7 @@ function canPlaceAnyBlock() {
 }
 
 function renderBoard() {
-  const cells = document.querySelectorAll('#board.cell');
+  const cells = document.querySelectorAll('#board.cell'); // INI YANG DI FIX
   for (let y = 0; y < boardSize; y++) {
     for (let x = 0; x < boardSize; x++) {
       const cell = cells[y * boardSize + x];
