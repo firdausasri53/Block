@@ -212,7 +212,11 @@ function handleTouchEnd(e) {
 
   const x = e.changedTouches[0].clientX;
   const y = e.changedTouches[0].clientY;
-
+   
+document.querySelectorAll('#board.cell').forEach(c => {
+  c.style.outline = '';
+});
+   
   if (highlightCell) {
     highlightCell.style.outline = '';
     highlightCell = null;
@@ -243,14 +247,54 @@ function handleTouchEnd(e) {
 }
 
 function highlightTarget(x, y) {
-  if (highlightCell) {
-    highlightCell.style.outline = '';
-  }
+  // Hapus highlight lama dulu
+  document.querySelectorAll('#board.cell').forEach(c => {
+    c.style.outline = '';
+  });
+  highlightCell = null;
+
   const target = document.elementFromPoint(x, y);
-  if (target && target.classList.contains('cell')) {
-    target.style.outline = '2px solid yellow';
-    highlightCell = target;
-  }
+  if (!target ||!target.classList.contains('cell')) return;
+
+  const allCells = Array.from(document.querySelectorAll('#board.cell'));
+  const index = allCells.indexOf(target);
+  if (index === -1) return;
+
+  const gridX = index % boardSize;
+  const gridY = Math.floor(index / boardSize);
+
+  if (!selectedBlock) return;
+
+  let canPlace = true;
+  const highlightCells = [];
+
+  // Cek tiap kotak di bentuk blok
+  selectedBlock.shape.forEach((row, i) => {
+    row.forEach((cell, j) => {
+      if (cell) {
+        const nx = gridX + j;
+        const ny = gridY + i;
+
+        // Kalau keluar board atau nabrak, tandain gak bisa
+        if (nx < 0 || nx >= boardSize || ny < 0 || ny >= boardSize || board[ny][nx]) {
+          canPlace = false;
+        }
+
+        const cellIndex = ny * boardSize + nx;
+        if (allCells[cellIndex]) {
+          highlightCells.push(allCells[cellIndex]);
+        }
+      }
+    });
+  });
+
+  // Kasih warna outline: hijau kalau bisa, merah kalau gak bisa
+  const outlineColor = canPlace? '2px solid #00ff88' : '2px solid red';
+  highlightCells.forEach(c => {
+    c.style.outline = outlineColor;
+  });
+
+  highlightCell = highlightCells[0]; // biar bisa di-reset pas touchend
 }
 
 function moveGhost(x, y) {
