@@ -15,7 +15,7 @@
     overflow: hidden;
   }
 
- .screen {
+.screen {
     display: none;
     flex-direction: column;
     align-items: center;
@@ -24,27 +24,25 @@
     padding: 20px;
   }
 
- .screen.active { display: flex; }
+.screen.active { display: flex; }
 
   h1 { font-size: 42px; margin-bottom: 10px; color: #a5b4fc; text-shadow: 0 0 20px #6366f1; }
   h2 { font-size: 28px; margin-bottom: 25px; color: #c7d2fe; }
 
- .btn {
+.btn {
     background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
     border: none; padding: 16px 50px; border-radius: 15px;
     font-size: 20px; font-weight: bold; color: white;
     cursor: pointer; margin: 8px; width: 100%; max-width: 280px;
-    box-shadow: 0 5px 20px rgba(34, 197, 94, 0.4);
   }
- .btn:active { transform: scale(0.95); }
+.btn:active { transform: scale(0.95); }
 
- .btn-secondary {
+.btn-secondary {
     background: transparent;
     border: 2px solid rgba(255,255,255,0.3);
-    box-shadow: none;
   }
 
- .btn-grid {
+.btn-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
@@ -54,7 +52,7 @@
     overflow-y: auto;
   }
 
- .mode-card {
+.mode-card {
     background: rgba(255,255,255,0.1);
     border: 2px solid rgba(99, 102, 241, 0.5);
     border-radius: 12px;
@@ -62,13 +60,13 @@
     text-align: center;
     cursor: pointer;
   }
- .mode-card:active { transform: scale(0.95); background: rgba(99, 102, 241, 0.3); }
+.mode-card:active { transform: scale(0.95); }
 
- .mode-num { font-size: 22px; font-weight: bold; color: #a5b4fc; }
- .mode-target { font-size: 11px; opacity: 0.6; margin-top: 4px; }
+.mode-num { font-size: 22px; font-weight: bold; color: #a5b4fc; }
+.mode-target { font-size: 11px; opacity: 0.6; }
 
-  /* GAME SCREEN */
- .header {
+  /* GAME */
+.header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -76,18 +74,10 @@
     width: 100%;
   }
 
- .score {
-    font-size: 32px;
-    font-weight: bold;
-  }
+.score { font-size: 32px; font-weight: bold; }
+.highscore { color: #fbbf24; font-size: 18px; font-weight: bold; }
 
- .highscore {
-    color: #fbbf24;
-    font-size: 18px;
-    font-weight: bold;
-  }
-
- .game-container {
+.game-container {
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -97,7 +87,7 @@
     width: 100%;
   }
 
- .board {
+.board {
     background: #1e293b;
     padding: 8px;
     border-radius: 15px;
@@ -109,17 +99,21 @@
     aspect-ratio: 1;
   }
 
- .cell {
+.cell {
     background: #0f172a;
     border-radius: 6px;
   }
 
- .cell.filled {
+.cell.filled {
     border-radius: 8px;
     box-shadow: inset 0 -4px 0 rgba(0,0,0,0.3);
   }
 
- .blocks-container {
+.cell.preview {
+    opacity: 0.5;
+  }
+
+.blocks-container {
     display: flex;
     justify-content: space-around;
     align-items: center;
@@ -129,26 +123,28 @@
     height: 120px;
   }
 
- .block-piece {
+.block-piece {
     display: grid;
     gap: 4px;
+    padding: 8px;
+    border-radius: 10px;
     cursor: pointer;
-    touch-action: none;
+    transition: 0.1s;
   }
 
- .block-piece:active {
-    opacity: 0.8;
-    transform: scale(0.95);
+.block-piece.selected {
+    background: rgba(255,255,255,0.2);
+    transform: scale(1.1);
   }
 
- .block-cell {
+.block-cell {
     width: 28px;
     height: 28px;
     border-radius: 6px;
     box-shadow: inset 0 -3px 0 rgba(0,0,0,0.3);
   }
 
- .popup {
+.popup {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -159,28 +155,26 @@
     text-align: center;
     display: none;
     border: 2px solid #6366f1;
+    z-index: 10;
   }
 
- .popup.active { display: block; }
+.popup.active { display: block; }
 </style>
 </head>
 <body>
 
-  <!-- MENU UTAMA -->
   <div id="mainMenu" class="screen active">
     <h1>BLOCK BLAST</h1>
     <button class="btn" onclick="startClassic()">Mode Klasik</button>
     <button class="btn" onclick="showScreen('dailyMenu')">Level Harian</button>
   </div>
 
-  <!-- MENU HARIAN -->
   <div id="dailyMenu" class="screen">
     <h2>Level Harian</h2>
     <div class="btn-grid" id="dailyGrid"></div>
     <button class="btn btn-secondary" onclick="showScreen('mainMenu')">Kembali</button>
   </div>
 
-  <!-- GAME SCREEN -->
   <div id="gameScreen" class="screen">
     <div class="header">
       <div class="highscore">👑 <span id="highscore">0</span></div>
@@ -194,7 +188,6 @@
     </div>
   </div>
 
-  <!-- POPUP -->
   <div id="popup" class="popup">
     <h2 id="popupTitle">Game Over!</h2>
     <p>Skor: <span id="finalScore">0</span></p>
@@ -227,8 +220,7 @@ const blockShapes = [
 ];
 
 const dailyLevels = Array.from({length: 30}, (_, i) => ({
-  target: 200 + i * 100,
-  limit: 20 + i // batas blok yang bisa dipasang
+  target: 200 + i * 100
 }));
 
 function showScreen(screenId) {
@@ -283,6 +275,9 @@ function createBoard() {
   for (let i = 0; i < boardSize * boardSize; i++) {
     const cell = document.createElement('div');
     cell.className = 'cell';
+    cell.dataset.x = i % boardSize;
+    cell.dataset.y = Math.floor(i / boardSize);
+    cell.onclick = () => handleBoardClick(cell);
     boardEl.appendChild(cell);
   }
 }
@@ -304,6 +299,7 @@ function renderBlocks() {
   currentBlocks.forEach((block, index) => {
     const piece = document.createElement('div');
     piece.className = 'block-piece';
+    if (selectedBlockIndex === index) piece.classList.add('selected');
     piece.style.gridTemplateColumns = `repeat(${block.shape[0].length}, 1fr)`;
 
     block.shape.forEach(row => {
@@ -323,23 +319,42 @@ function renderBlocks() {
 }
 
 function selectBlock(index) {
-  selectedBlock = currentBlocks[index];
   selectedBlockIndex = index;
+  selectedBlock = currentBlocks[index];
+  renderBlocks();
+  clearPreview();
 }
 
-function renderBoard() {
-  const cells = document.querySelectorAll('#board.cell');
-  for (let y = 0; y < boardSize; y++) {
-    for (let x = 0; x < boardSize; x++) {
-      const cell = cells[y * boardSize + x];
-      if (board[y][x]) {
-        cell.className = 'cell filled';
-        cell.style.background = board[y][x];
-      } else {
-        cell.className = 'cell';
-        cell.style.background = '';
+function clearPreview() {
+  document.querySelectorAll('.cell.preview').forEach(c => c.classList.remove('preview'));
+}
+
+function showPreview(x, y) {
+  clearPreview();
+  if (!selectedBlock) return;
+
+  for (let py = 0; py < selectedBlock.shape.length; py++) {
+    for (let px = 0; px < selectedBlock.shape[0].length; px++) {
+      if (selectedBlock.shape[py][px]) {
+        let bx = x + px;
+        let by = y + py;
+        if (bx >= 0 && bx < boardSize && by >= 0 && by < boardSize &&!board[by][bx]) {
+          const cell = document.querySelector(`.cell[data-x="${bx}"][data-y="${by}"]`);
+          if (cell) cell.classList.add('preview');
+        }
       }
     }
+  }
+}
+
+function handleBoardClick(cell) {
+  if (!selectedBlock) return;
+
+  const x = parseInt(cell.dataset.x);
+  const y = parseInt(cell.dataset.y);
+
+  if (canPlaceBlock(selectedBlock, x, y)) {
+    placeBlock(selectedBlock, x, y);
   }
 }
 
@@ -377,8 +392,8 @@ function placeBlock(block, startX, startY) {
   updateScore();
   renderBoard();
   renderBlocks();
+  clearPreview();
 
-  // Cek win di mode harian
   if (gameMode === 'daily' && score >= targetScore) {
     levelComplete();
     return;
@@ -422,6 +437,22 @@ function canPlaceAnyBlock() {
   return false;
 }
 
+function renderBoard() {
+  const cells = document.querySelectorAll('#board.cell');
+  for (let y = 0; y < boardSize; y++) {
+    for (let x = 0; x < boardSize; x++) {
+      const cell = cells[y * boardSize + x];
+      if (board[y][x]) {
+        cell.className = 'cell filled';
+        cell.style.background = board[y][x];
+      } else {
+        cell.className = 'cell';
+        cell.style.background = '';
+      }
+    }
+  }
+}
+
 function updateScore() {
   document.getElementById('score').textContent = score;
   if (score > highscore) {
@@ -460,33 +491,29 @@ function quitGame() {
   showScreen('mainMenu');
 }
 
-// Klik board buat taruh blok
-document.getElementById('board').addEventListener('click', (e) => {
-  if (!selectedBlock) return;
-
-  const rect = e.currentTarget.getBoundingClientRect();
-  const cellSize = rect.width / boardSize;
-  const x = Math.floor((e.clientX - rect.left) / cellSize);
-  const y = Math.floor((e.clientY - rect.top) / cellSize);
-
-  if (canPlaceBlock(selectedBlock, x, y)) {
-    placeBlock(selectedBlock, x, y);
+// Hover preview buat desktop
+document.getElementById('board').addEventListener('mouseover', (e) => {
+  if (e.target.classList.contains('cell')) {
+    const x = parseInt(e.target.dataset.x);
+    const y = parseInt(e.target.dataset.y);
+    showPreview(x, y);
   }
 });
 
-// Support touch
-document.getElementById('board').addEventListener('touchend', (e) => {
-  e.preventDefault();
-  const touch = e.changedTouches[0];
-  const rect = e.currentTarget.getBoundingClientRect();
-  const cellSize = rect.width / boardSize;
-  const x = Math.floor((touch.clientX - rect.left) / cellSize);
-  const y = Math.floor((touch.clientY - rect.top) / cellSize);
+document.getElementById('board').addEventListener('mouseleave', clearPreview);
 
-  if (selectedBlock && canPlaceBlock(selectedBlock, x, y)) {
-    placeBlock(selectedBlock, x, y);
+// Touch preview buat HP
+document.getElementById('board').addEventListener('touchmove', (e) => {
+  const touch = e.touches[0];
+  const element = document.elementFromPoint(touch.clientX, touch.clientY);
+  if (element && element.classList.contains('cell')) {
+    const x = parseInt(element.dataset.x);
+    const y = parseInt(element.dataset.y);
+    showPreview(x, y);
   }
 });
+
+document.getElementById('board').addEventListener('touchend', clearPreview);
 </script>
 </body>
 </html>
