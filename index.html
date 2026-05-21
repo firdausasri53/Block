@@ -202,16 +202,25 @@ function handleTouchEnd(e) {
   e.preventDefault();
   if (!dragGhost) return;
 
-  const boardRect = document.getElementById('board').getBoundingClientRect();
+  const boardEl = document.getElementById('board');
+  const boardRect = boardEl.getBoundingClientRect();
   const touch = e.changedTouches[0];
 
-  if (touch.clientX >= boardRect.left && touch.clientX <= boardRect.right &&
-      touch.clientY >= boardRect.top && touch.clientY <= boardRect.bottom) {
+  // Hitung posisi relatif ke board, kurangi padding
+  const padding = 8; // sesuai padding di CSS #board
+  const gap = 4; // sesuai gap di CSS #board
 
-    const cellSize = boardRect.width / boardSize;
-    const gridX = Math.floor((touch.clientX - boardRect.left) / cellSize);
-    const gridY = Math.floor((touch.clientY - boardRect.top) / cellSize);
+  const relX = touch.clientX - boardRect.left - padding;
+  const relY = touch.clientY - boardRect.top - padding;
 
+  // Ukuran 1 kotak = (lebar board - padding kiri kanan - gap antar kotak) / 8
+  const cellSize = (boardRect.width - padding * 2 - gap * 7) / boardSize;
+
+  const gridX = Math.floor(relX / (cellSize + gap));
+  const gridY = Math.floor(relY / (cellSize + gap));
+
+  // Cek kalau masih di dalam board
+  if (gridX >= 0 && gridX < boardSize && gridY >= 0 && gridY < boardSize) {
     if (canPlaceBlock(selectedBlock, gridX, gridY)) {
       placeBlock(selectedBlock, gridX, gridY);
     }
@@ -223,7 +232,6 @@ function handleTouchEnd(e) {
   selectedBlockIndex = -1;
   renderBlocks();
 }
-
 function moveGhost(x, y) {
   if (dragGhost) {
     dragGhost.style.left = (x - dragGhost.offsetWidth / 2) + 'px';
