@@ -205,7 +205,29 @@ function handleTouchMove(e) {
   moveGhost(x, y);
   highlightTarget(x, y);
 }
+function getShapeCells(startIndex, shape) {
+  const cells = [];
+  const startRow = Math.floor(startIndex / boardSize);
+  const startCol = startIndex % boardSize;
 
+  for (let r = 0; r < shape.length; r++) {
+    for (let c = 0; c < shape[r].length; c++) {
+      if (shape[r][c]) {
+        const row = startRow + r;
+        const col = startCol + c;
+        if (row >= boardSize || col >= boardSize) return [];
+        cells.push(row * boardSize + col);
+      }
+    }
+  }
+  return cells;
+}
+
+function canPlaceShape(startIndex, shape) {
+  const cells = getShapeCells(startIndex, shape);
+  if (cells.length === 0) return false;
+  return cells.every(i => board[Math.floor(i / boardSize)][i % boardSize] === 0);
+}
 function handleTouchEnd(e) {
   e.preventDefault();
   if (!dragGhost) return;
@@ -227,20 +249,16 @@ function handleTouchEnd(e) {
 
   const target = document.elementFromPoint(x, y);
 
-  if (target && target.classList.contains('cell')) {
-    const allCells = Array.from(document.querySelectorAll('#board.cell'));
-    const index = allCells.indexOf(target);
+if (target && target.classList.contains('cell')) {
+  const allCells = Array.from(document.querySelectorAll('#board.cell'));
+  const index = allCells.indexOf(target);
 
-    if (index!== -1) {
-      const gridX = index % boardSize;
-      const gridY = Math.floor(index / boardSize);
-
-      if (canPlaceBlock(selectedBlock, gridX, gridY)) {
-        placeBlock(selectedBlock, gridX, gridY);
-      }
+  if (index!== -1) {
+    if (canPlaceShape(index, selectedBlock.shape)) {
+      placeBlock(selectedBlock, index % boardSize, Math.floor(index / boardSize));
     }
   }
-
+}
   selectedBlock = null;
   selectedBlockIndex = -1;
   renderBlocks();
