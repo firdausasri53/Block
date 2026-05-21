@@ -213,7 +213,7 @@ function handleTouchEnd(e) {
   const x = e.changedTouches[0].clientX;
   const y = e.changedTouches[0].clientY;
    
-document.querySelectorAll('#board.cell').forEach(c => {
+document.querySelectorAll('#board .cell').forEach(c => {
   c.style.outline = '';
 });
    
