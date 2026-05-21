@@ -5,14 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Block Blast</title>
 <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
   body {
-    background: #3b4a7a;
+    background: linear-gradient(180deg, #4a6cf7 0%, #8b9cff 100%);
     font-family: Arial, sans-serif;
     color: white;
     height: 100vh;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 
 .screen {
@@ -26,11 +28,11 @@
 
 .screen.active { display: flex; }
 
-  h1 { font-size: 42px; margin-bottom: 10px; color: #a5b4fc; text-shadow: 0 0 20px #6366f1; }
-  h2 { font-size: 28px; margin-bottom: 25px; color: #c7d2fe; }
+  h1 { font-size: 42px; margin-bottom: 10px; color: #fff; text-shadow: 0 0 20px #6366f1; }
+  h2 { font-size: 28px; margin-bottom: 25px; color: #fff; }
 
 .btn {
-    background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+    background: #22c55e;
     border: none; padding: 16px 50px; border-radius: 15px;
     font-size: 20px; font-weight: bold; color: white;
     cursor: pointer; margin: 8px; width: 100%; max-width: 280px;
@@ -53,25 +55,24 @@
   }
 
 .mode-card {
-    background: rgba(255,255,255,0.1);
-    border: 2px solid rgba(99, 102, 241, 0.5);
+    background: rgba(255,255,255,0.15);
+    border: 2px solid rgba(255,255,255,0.3);
     border-radius: 12px;
     padding: 15px 5px;
     text-align: center;
-    cursor: pointer;
   }
 .mode-card:active { transform: scale(0.95); }
 
-.mode-num { font-size: 22px; font-weight: bold; color: #a5b4fc; }
-.mode-target { font-size: 11px; opacity: 0.6; }
+.mode-num { font-size: 22px; font-weight: bold; color: #fff; }
 
-  /* GAME */
+  /* GAME SCREEN */
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 15px 20px;
     width: 100%;
+    flex-shrink: 0;
   }
 
 .score { font-size: 32px; font-weight: bold; }
@@ -82,13 +83,14 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     padding: 10px;
     width: 100%;
+    min-height: 0;
   }
 
 .board {
-    background: #1e293b;
+    background: rgba(0,0,0,0.3);
     padding: 8px;
     border-radius: 15px;
     display: grid;
@@ -97,30 +99,28 @@
     width: 95vw;
     max-width: 360px;
     aspect-ratio: 1;
+    flex-shrink: 0;
   }
 
 .cell {
-    background: #0f172a;
+    background: rgba(0,0,0,0.4);
     border-radius: 6px;
+    cursor: pointer;
   }
 
 .cell.filled {
     border-radius: 8px;
-    box-shadow: inset 0 -4px 0 rgba(0,0,0,0.3);
-  }
-
-.cell.preview {
-    opacity: 0.5;
   }
 
 .blocks-container {
     display: flex;
     justify-content: space-around;
     align-items: center;
-    margin-top: 25px;
     width: 100%;
     max-width: 360px;
-    height: 120px;
+    height: 100px;
+    flex-shrink: 0;
+    margin-bottom: 10px;
   }
 
 .block-piece {
@@ -129,11 +129,10 @@
     padding: 8px;
     border-radius: 10px;
     cursor: pointer;
-    transition: 0.1s;
   }
 
 .block-piece.selected {
-    background: rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.25);
     transform: scale(1.1);
   }
 
@@ -141,7 +140,6 @@
     width: 28px;
     height: 28px;
     border-radius: 6px;
-    box-shadow: inset 0 -3px 0 rgba(0,0,0,0.3);
   }
 
 .popup {
@@ -179,7 +177,7 @@
     <div class="header">
       <div class="highscore">👑 <span id="highscore">0</span></div>
       <div class="score" id="score">0</div>
-      <div onclick="quitGame()">✕</div>
+      <div onclick="quitGame()" style="font-size:28px;">✕</div>
     </div>
 
     <div class="game-container">
@@ -199,7 +197,7 @@
 const boardSize = 8;
 const colors = ['#3b82f6', '#f97316', '#22c55e', '#a855f7', '#eab308', '#06b6d4', '#ec4899'];
 
-let board = Array(boardSize).fill().map(() => Array(boardSize).fill(0));
+let board = [];
 let score = 0;
 let highscore = localStorage.getItem('blockblast_highscore') || 0;
 let currentBlocks = [];
@@ -226,22 +224,17 @@ const dailyLevels = Array.from({length: 30}, (_, i) => ({
 function showScreen(screenId) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(screenId).classList.add('active');
-
   if (screenId === 'dailyMenu') loadDailyLevels();
 }
 
 function loadDailyLevels() {
   const grid = document.getElementById('dailyGrid');
   grid.innerHTML = '';
-
   dailyLevels.forEach((lvl, i) => {
     const card = document.createElement('div');
     card.className = 'mode-card';
     card.onclick = () => startDaily(i + 1);
-    card.innerHTML = `
-      <div class="mode-num">${i + 1}</div>
-      <div class="mode-target">Target ${lvl.target}</div>
-    `;
+    card.innerHTML = `<div class="mode-num">${i + 1}</div><div>Target ${lvl.target}</div>`;
     grid.appendChild(card);
   });
 }
@@ -272,13 +265,19 @@ function startGame() {
 function createBoard() {
   const boardEl = document.getElementById('board');
   boardEl.innerHTML = '';
-  for (let i = 0; i < boardSize * boardSize; i++) {
-    const cell = document.createElement('div');
-    cell.className = 'cell';
-    cell.dataset.x = i % boardSize;
-    cell.dataset.y = Math.floor(i / boardSize);
-    cell.onclick = () => handleBoardClick(cell);
-    boardEl.appendChild(cell);
+  for (let y = 0; y < boardSize; y++) {
+    for (let x = 0; x < boardSize; x++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.dataset.x = x;
+      cell.dataset.y = y;
+      cell.addEventListener('click', () => handleBoardClick(x, y));
+      cell.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        handleBoardClick(x, y);
+      });
+      boardEl.appendChild(cell);
+    }
   }
 }
 
@@ -313,7 +312,11 @@ function renderBlocks() {
       });
     });
 
-    piece.onclick = () => selectBlock(index);
+    piece.addEventListener('click', () => selectBlock(index));
+    piece.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      selectBlock(index);
+    });
     container.appendChild(piece);
   });
 }
@@ -322,36 +325,10 @@ function selectBlock(index) {
   selectedBlockIndex = index;
   selectedBlock = currentBlocks[index];
   renderBlocks();
-  clearPreview();
 }
 
-function clearPreview() {
-  document.querySelectorAll('.cell.preview').forEach(c => c.classList.remove('preview'));
-}
-
-function showPreview(x, y) {
-  clearPreview();
+function handleBoardClick(x, y) {
   if (!selectedBlock) return;
-
-  for (let py = 0; py < selectedBlock.shape.length; py++) {
-    for (let px = 0; px < selectedBlock.shape[0].length; px++) {
-      if (selectedBlock.shape[py][px]) {
-        let bx = x + px;
-        let by = y + py;
-        if (bx >= 0 && bx < boardSize && by >= 0 && by < boardSize &&!board[by][bx]) {
-          const cell = document.querySelector(`.cell[data-x="${bx}"][data-y="${by}"]`);
-          if (cell) cell.classList.add('preview');
-        }
-      }
-    }
-  }
-}
-
-function handleBoardClick(cell) {
-  if (!selectedBlock) return;
-
-  const x = parseInt(cell.dataset.x);
-  const y = parseInt(cell.dataset.y);
 
   if (canPlaceBlock(selectedBlock, x, y)) {
     placeBlock(selectedBlock, x, y);
@@ -392,7 +369,6 @@ function placeBlock(block, startX, startY) {
   updateScore();
   renderBoard();
   renderBlocks();
-  clearPreview();
 
   if (gameMode === 'daily' && score >= targetScore) {
     levelComplete();
@@ -490,30 +466,6 @@ function quitGame() {
   document.getElementById('popup').classList.remove('active');
   showScreen('mainMenu');
 }
-
-// Hover preview buat desktop
-document.getElementById('board').addEventListener('mouseover', (e) => {
-  if (e.target.classList.contains('cell')) {
-    const x = parseInt(e.target.dataset.x);
-    const y = parseInt(e.target.dataset.y);
-    showPreview(x, y);
-  }
-});
-
-document.getElementById('board').addEventListener('mouseleave', clearPreview);
-
-// Touch preview buat HP
-document.getElementById('board').addEventListener('touchmove', (e) => {
-  const touch = e.touches[0];
-  const element = document.elementFromPoint(touch.clientX, touch.clientY);
-  if (element && element.classList.contains('cell')) {
-    const x = parseInt(element.dataset.x);
-    const y = parseInt(element.dataset.y);
-    showPreview(x, y);
-  }
-});
-
-document.getElementById('board').addEventListener('touchend', clearPreview);
 </script>
 </body>
 </html>
