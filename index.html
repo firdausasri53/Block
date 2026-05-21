@@ -220,6 +220,7 @@ function handleTouchEnd(e) {
   dragGhost = null;
 
   const target = document.elementFromPoint(x, y);
+  console.log("Lepas di:", target);
 
   if (target && target.classList.contains('cell')) {
     const allCells = Array.from(document.querySelectorAll('#board.cell'));
@@ -229,10 +230,17 @@ function handleTouchEnd(e) {
       const gridX = index % boardSize;
       const gridY = Math.floor(index / boardSize);
 
+      console.log("Posisi grid:", gridX, gridY);
+      console.log("Bisa taruh?", canPlaceBlock(selectedBlock, gridX, gridY));
+
       if (canPlaceBlock(selectedBlock, gridX, gridY)) {
         placeBlock(selectedBlock, gridX, gridY);
+      } else {
+        console.log("Gagal: Blok gak muat di posisi itu");
       }
     }
+  } else {
+    console.log("Gagal: Lepasnya bukan di kotak board");
   }
 
   selectedBlock = null;
@@ -240,6 +248,29 @@ function handleTouchEnd(e) {
   renderBlocks();
 }
 
+function canPlaceBlock(piece, x, y) {
+  const matrix = piece.shape;
+  for (let i = 0; i < matrix.length; i++) {
+    for (let j = 0; j < matrix[0].length; j++) {
+      if (matrix[i][j]) {
+        const nx = x + j;
+        const ny = y + i;
+
+        // Cek keluar board
+        if (nx < 0 || nx >= boardSize || ny < 0 || ny >= boardSize) {
+          return false;
+        }
+
+        // Cek nabrak blok lain
+        if (board[ny][nx]) {
+          return false;
+        }
+      }
+    }
+  }
+  return true;
+}
+   
 function highlightTarget(x, y) {
   if (highlightCell) {
     highlightCell.style.outline = '';
