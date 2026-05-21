@@ -29,6 +29,7 @@
     border-radius: 12px;
     width: 90vw;
     max-width: 360px;
+    touch-action: none;
   }
 
  .cell {
@@ -85,8 +86,8 @@ let currentBlocks = [];
 let selectedBlock = null;
 let selectedBlockIndex = -1;
 
-// Drag variables
 let dragGhost = null;
+let highlightCell = null;
 
 function initBoard() {
   board = Array(boardSize).fill(null).map(() => Array(boardSize).fill(0));
@@ -118,7 +119,7 @@ function generateBlocks() {
 }
 
 function renderBoard() {
-  const cells = document.querySelectorAll('#board.cell'); // tambah spasi di sini
+  const cells = document.querySelectorAll('#board.cell');
   for (let y = 0; y < boardSize; y++) {
     for (let x = 0; x < boardSize; x++) {
       const index = y * boardSize + x;
@@ -132,7 +133,7 @@ function renderBoard() {
     }
   }
 }
-   
+
 function renderBlocks() {
   const container = document.getElementById('blocksContainer');
   container.innerHTML = '';
@@ -170,7 +171,7 @@ function handleTouchStart(e, index) {
   dragGhost = document.createElement('div');
   dragGhost.style.position = 'fixed';
   dragGhost.style.pointerEvents = 'none';
-  dragGhost.style.opacity = '0.8';
+  dragGhost.style.opacity = '0.7';
   dragGhost.style.zIndex = '100';
   dragGhost.style.display = 'grid';
   dragGhost.style.gap = '4px';
@@ -195,30 +196,42 @@ function handleTouchStart(e, index) {
 function handleTouchMove(e) {
   e.preventDefault();
   if (!dragGhost) return;
-  moveGhost(e.touches[0].clientX, e.touches[0].clientY);
+
+  const x = e.touches[0].clientX;
+  const y = e.touches[0].clientY;
+
+  moveGhost(x, y);
+  highlightTarget(x, y);
 }
 
 function handleTouchEnd(e) {
   e.preventDefault();
   if (!dragGhost) return;
 
-  // Hapus ghost dulu biar elementFromPoint bisa ngecek board di bawahnya
+  const x = e.changedTouches[0].clientX;
+  const y = e.changedTouches[0].clientY;
+
+  if (highlightCell) {
+    highlightCell.style.outline = '';
+    highlightCell = null;
+  }
+
   document.body.removeChild(dragGhost);
   dragGhost = null;
 
-  const touch = e.changedTouches[0];
-  const target = document.elementFromPoint(touch.clientX, touch.clientY);
+  const target = document.elementFromPoint(x, y);
 
-  // Cek apakah lepasnya di atas kotak board
   if (target && target.classList.contains('cell')) {
     const allCells = Array.from(document.querySelectorAll('#board.cell'));
     const index = allCells.indexOf(target);
 
-    const gridX = index % boardSize;
-    const gridY = Math.floor(index / boardSize);
+    if (index!== -1) {
+      const gridX = index % boardSize;
+      const gridY = Math.floor(index / boardSize);
 
-    if (canPlaceBlock(selectedBlock, gridX, gridY)) {
-      placeBlock(selectedBlock, gridX, gridY);
+      if (canPlaceBlock(selectedBlock, gridX, gridY)) {
+        placeBlock(selectedBlock, gridX, gridY);
+      }
     }
   }
 
@@ -226,7 +239,18 @@ function handleTouchEnd(e) {
   selectedBlockIndex = -1;
   renderBlocks();
 }
-   
+
+function highlightTarget(x, y) {
+  if (highlightCell) {
+    highlightCell.style.outline = '';
+  }
+  const target = document.elementFromPoint(x, y);
+  if (target && target.classList.contains('cell')) {
+    target.style.outline = '2px solid yellow';
+    highlightCell = target;
+  }
+}
+
 function moveGhost(x, y) {
   if (dragGhost) {
     dragGhost.style.left = (x - dragGhost.offsetWidth / 2) + 'px';
@@ -234,12 +258,8 @@ function moveGhost(x, y) {
   }
 }
 
-function pieceToMatrix(piece) {
-  return piece.shape;
-}
-
 function canPlaceBlock(piece, x, y) {
-  const matrix = pieceToMatrix(piece);
+  const matrix = piece.shape;
   for (let i = 0; i < matrix.length; i++) {
     for (let j = 0; j < matrix[0].length; j++) {
       if (matrix[i][j]) {
@@ -254,7 +274,7 @@ function canPlaceBlock(piece, x, y) {
 }
 
 function placeBlock(piece, x, y) {
-  const matrix = pieceToMatrix(piece);
+  const matrix = piece.shape;
   for (let i = 0; i < matrix.length; i++) {
     for (let j = 0; j < matrix[0].length; j++) {
       if (matrix[i][j]) {
