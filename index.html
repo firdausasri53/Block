@@ -32,14 +32,14 @@
     touch-action: none;
   }
 
- .cell {
+.cell {
     width: 100%;
     aspect-ratio: 1;
     background: #0f3460;
     border-radius: 6px;
   }
 
- .cell.filled { background: #e94560; }
+.cell.filled { background: #e94560; }
 
   #blocksContainer {
     display: flex;
@@ -49,7 +49,7 @@
     flex-wrap: wrap;
   }
 
- .block-piece {
+.block-piece {
     display: grid;
     gap: 4px;
     padding: 8px;
@@ -59,12 +59,12 @@
     background: rgba(255,255,255,0.1);
   }
 
- .block-piece.selected {
+.block-piece.selected {
     background: rgba(255,255,255,0.3);
     outline: 2px solid #00ff88;
   }
 
- .block-cell {
+.block-cell {
     width: 28px;
     height: 28px;
     border-radius: 6px;
@@ -123,6 +123,8 @@ function renderBoard() {
   for (let y = 0; y < boardSize; y++) {
     for (let x = 0; x < boardSize; x++) {
       const index = y * boardSize + x;
+      if (!cells[index]) continue;
+
       if (board[y][x]) {
         cells[index].classList.add('filled');
         cells[index].style.background = board[y][x];
@@ -220,27 +222,19 @@ function handleTouchEnd(e) {
   dragGhost = null;
 
   const target = document.elementFromPoint(x, y);
-  console.log("Lepas di:", target);
 
   if (target && target.classList.contains('cell')) {
-    const allCells = Array.from(document.querySelectorAll('#board.cell'));
+    const allCells = Array.from(document.querySelectorAll('#board .cell'));
     const index = allCells.indexOf(target);
 
     if (index!== -1) {
       const gridX = index % boardSize;
       const gridY = Math.floor(index / boardSize);
 
-      console.log("Posisi grid:", gridX, gridY);
-      console.log("Bisa taruh?", canPlaceBlock(selectedBlock, gridX, gridY));
-
       if (canPlaceBlock(selectedBlock, gridX, gridY)) {
         placeBlock(selectedBlock, gridX, gridY);
-      } else {
-        console.log("Gagal: Blok gak muat di posisi itu");
       }
     }
-  } else {
-    console.log("Gagal: Lepasnya bukan di kotak board");
   }
 
   selectedBlock = null;
@@ -248,29 +242,6 @@ function handleTouchEnd(e) {
   renderBlocks();
 }
 
-function canPlaceBlock(piece, x, y) {
-  const matrix = piece.shape;
-  for (let i = 0; i < matrix.length; i++) {
-    for (let j = 0; j < matrix[0].length; j++) {
-      if (matrix[i][j]) {
-        const nx = x + j;
-        const ny = y + i;
-
-        // Cek keluar board
-        if (nx < 0 || nx >= boardSize || ny < 0 || ny >= boardSize) {
-          return false;
-        }
-
-        // Cek nabrak blok lain
-        if (board[ny][nx]) {
-          return false;
-        }
-      }
-    }
-  }
-  return true;
-}
-   
 function highlightTarget(x, y) {
   if (highlightCell) {
     highlightCell.style.outline = '';
