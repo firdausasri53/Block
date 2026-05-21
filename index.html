@@ -118,7 +118,7 @@ function generateBlocks() {
 }
 
 function renderBoard() {
-  const cells = document.querySelectorAll('#board.cell');
+  const cells = document.querySelectorAll('#board.cell'); // tambah spasi di sini
   for (let y = 0; y < boardSize; y++) {
     for (let x = 0; x < boardSize; x++) {
       const index = y * boardSize + x;
@@ -132,7 +132,7 @@ function renderBoard() {
     }
   }
 }
-
+   
 function renderBlocks() {
   const container = document.getElementById('blocksContainer');
   container.innerHTML = '';
@@ -202,36 +202,31 @@ function handleTouchEnd(e) {
   e.preventDefault();
   if (!dragGhost) return;
 
-  const boardEl = document.getElementById('board');
-  const boardRect = boardEl.getBoundingClientRect();
+  // Hapus ghost dulu biar elementFromPoint bisa ngecek board di bawahnya
+  document.body.removeChild(dragGhost);
+  dragGhost = null;
+
   const touch = e.changedTouches[0];
+  const target = document.elementFromPoint(touch.clientX, touch.clientY);
 
-  // Hitung posisi relatif ke board, kurangi padding
-  const padding = 8; // sesuai padding di CSS #board
-  const gap = 4; // sesuai gap di CSS #board
+  // Cek apakah lepasnya di atas kotak board
+  if (target && target.classList.contains('cell')) {
+    const allCells = Array.from(document.querySelectorAll('#board.cell'));
+    const index = allCells.indexOf(target);
 
-  const relX = touch.clientX - boardRect.left - padding;
-  const relY = touch.clientY - boardRect.top - padding;
+    const gridX = index % boardSize;
+    const gridY = Math.floor(index / boardSize);
 
-  // Ukuran 1 kotak = (lebar board - padding kiri kanan - gap antar kotak) / 8
-  const cellSize = (boardRect.width - padding * 2 - gap * 7) / boardSize;
-
-  const gridX = Math.floor(relX / (cellSize + gap));
-  const gridY = Math.floor(relY / (cellSize + gap));
-
-  // Cek kalau masih di dalam board
-  if (gridX >= 0 && gridX < boardSize && gridY >= 0 && gridY < boardSize) {
     if (canPlaceBlock(selectedBlock, gridX, gridY)) {
       placeBlock(selectedBlock, gridX, gridY);
     }
   }
 
-  document.body.removeChild(dragGhost);
-  dragGhost = null;
   selectedBlock = null;
   selectedBlockIndex = -1;
   renderBlocks();
 }
+   
 function moveGhost(x, y) {
   if (dragGhost) {
     dragGhost.style.left = (x - dragGhost.offsetWidth / 2) + 'px';
