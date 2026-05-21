@@ -101,7 +101,7 @@
     padding: 8px;
     border-radius: 10px;
     cursor: pointer;
-    touch-action: manipulation;
+    touch-action: none;
   }
 
 .block-piece.selected { background: rgba(255,255,255,0.25); transform: scale(1.1); }
@@ -253,7 +253,6 @@ function renderBlocks() {
   currentBlocks.forEach((block, index) => {
     const piece = document.createElement('div');
     piece.className = 'block-piece';
-    if (selectedBlockIndex === index) piece.classList.add('selected');
     piece.style.gridTemplateColumns = `repeat(${block.shape[0].length}, 1fr)`;
 
     block.shape.forEach(row => {
@@ -267,15 +266,92 @@ function renderBlocks() {
       });
     });
 
-    piece.onclick = () => selectBlock(index);
+    // Drag events untuk HP
+    piece.draggable = false; // matiin drag bawaan browser
+    piece.addEventListener('touchstart', (e) => handleTouchStart(e, index), {passive: false});
+    piece.addEventListener('touchmove', (e) => handleTouchMove(e), {passive: false});
+    piece.addEventListener('touchend', (e) => handleTouchEnd(e), {passive: false});
+
     container.appendChild(piece);
   });
 }
+let draggedBlock = null;
+let draggedIndex = -1;
+let dragGhost = null;
 
-function selectBlock(index) {
+function handleTouchStart(e, index) {
+  e.preventDefault();
   selectedBlockIndex = index;
   selectedBlock = currentBlocks[index];
+  draggedBlock = pieceToMatrix(selectedBlock);
+
+  // Bikin "bayangan" blok yang ikut jari
+  dragGhost = document.createElement('div');
+  dragGhost.style.position = 'fixed';
+  dragGhost.style.pointerEvents = 'none';
+  dragGhost.style.opacity = '0.8';
+  dragGhost.style.zIndex = '100';
+  dragGhost.style.display = 'grid';
+  dragGhost.style.gap = '4px';
+  dragGhost.style.gridTemplateColumns = `repeat(${selectedBlock.shape[0].length}, 1fr)`;
+
+  selectedBlock.shape.forEach(row => {
+    row.forEach(cell => {
+      const div = document.createElement('div');
+      div.style.width = '28px';
+      div.style.height = '28px';
+      div.style.borderRadius = '6px';
+      if (cell) div.style.background = selectedBlock.color;
+      dragGhost.appendChild(div);
+    });
+  });
+
+  document.body.appendChild(dragGhost);
+  moveGhost(e.touches[0].clientX, e.touches[0].clientY);
+  renderBlocks(); // buat efek selected
+}
+
+function handleTouchMove(e) {
+  e.preventDefault();
+  if (!dragGhost) return;
+  moveGhost(e.touches[0].clientX, e.touches[0].clientY);
+}
+
+function handleTouchEnd(e) {
+  e.preventDefault();
+  if (!dragGhost) return;
+
+  // Cek posisi lepas di atas board atau nggak
+  const boardRect = document.getElementById('board').getBoundingClientRect();
+  const touch = e.changedTouches[0];
+
+  if (touch.clientX >= boardRect.left && touch.clientX <= boardRect.right &&
+      touch.clientY >= boardRect.top && touch.clientY <= boardRect.bottom) {
+
+    // Hitung posisi grid yang kena
+    const cellSize = boardRect.width / boardSize;
+    const gridX = Math.floor((touch.clientX - boardRect.left) / cellSize);
+    const gridY = Math.floor((touch.clientY - boardRect.top) / cellSize);
+
+    // Coba taruh blok
+    if (canPlaceBlock(selectedBlock, gridX, gridY)) {
+      placeBlock(selectedBlock, gridX, gridY);
+    }
+  }
+
+  // Hapus ghost
+  document.body.removeChild(dragGhost);
+  dragGhost = null;
+  selectedBlock = null;
+  selectedBlockIndex = -1;
   renderBlocks();
+}
+
+function moveGhost(x, y) {
+  if (dragGhost) {
+    dragGhost.style.left = (x - dragGhost.offsetWidth / 2) + 'px';
+    dragGhost.style.top = (y - dragGhost.offsetHeight / 2) + 'px';
+  }
 }
 
 function handleBoardClick(x, y) {
