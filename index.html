@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Block Blast Web</title>
+<title>Block Blast</title>
 <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -11,17 +11,69 @@
     background: #3b4a7a;
     font-family: Arial, sans-serif;
     color: white;
-    display: flex;
-    flex-direction: column;
     height: 100vh;
     overflow: hidden;
   }
 
+ .screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    padding: 20px;
+  }
+
+ .screen.active { display: flex; }
+
+  h1 { font-size: 42px; margin-bottom: 10px; color: #a5b4fc; text-shadow: 0 0 20px #6366f1; }
+  h2 { font-size: 28px; margin-bottom: 25px; color: #c7d2fe; }
+
+ .btn {
+    background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+    border: none; padding: 16px 50px; border-radius: 15px;
+    font-size: 20px; font-weight: bold; color: white;
+    cursor: pointer; margin: 8px; width: 100%; max-width: 280px;
+    box-shadow: 0 5px 20px rgba(34, 197, 94, 0.4);
+  }
+ .btn:active { transform: scale(0.95); }
+
+ .btn-secondary {
+    background: transparent;
+    border: 2px solid rgba(255,255,255,0.3);
+    box-shadow: none;
+  }
+
+ .btn-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    width: 100%;
+    max-width: 320px;
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+
+ .mode-card {
+    background: rgba(255,255,255,0.1);
+    border: 2px solid rgba(99, 102, 241, 0.5);
+    border-radius: 12px;
+    padding: 15px 5px;
+    text-align: center;
+    cursor: pointer;
+  }
+ .mode-card:active { transform: scale(0.95); background: rgba(99, 102, 241, 0.3); }
+
+ .mode-num { font-size: 22px; font-weight: bold; color: #a5b4fc; }
+ .mode-target { font-size: 11px; opacity: 0.6; margin-top: 4px; }
+
+  /* GAME SCREEN */
  .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 15px 20px;
+    width: 100%;
   }
 
  .score {
@@ -35,11 +87,6 @@
     font-weight: bold;
   }
 
- .gear {
-    font-size: 28px;
-    cursor: pointer;
-  }
-
  .game-container {
     flex: 1;
     display: flex;
@@ -47,6 +94,7 @@
     align-items: center;
     justify-content: center;
     padding: 10px;
+    width: 100%;
   }
 
  .board {
@@ -84,13 +132,13 @@
  .block-piece {
     display: grid;
     gap: 4px;
-    cursor: grab;
+    cursor: pointer;
     touch-action: none;
   }
 
  .block-piece:active {
-    cursor: grabbing;
     opacity: 0.8;
+    transform: scale(0.95);
   }
 
  .block-cell {
@@ -100,11 +148,7 @@
     box-shadow: inset 0 -3px 0 rgba(0,0,0,0.3);
   }
 
- .ghost {
-    opacity: 0.4;
-  }
-
- .game-over {
+ .popup {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -114,55 +158,48 @@
     border-radius: 20px;
     text-align: center;
     display: none;
+    border: 2px solid #6366f1;
   }
 
- .game-over h2 {
-    font-size: 28px;
-    margin-bottom: 15px;
-    color: #f87171;
-  }
-
- .btn {
-    background: #22c55e;
-    border: none;
-    padding: 12px 30px;
-    border-radius: 12px;
-    font-size: 18px;
-    font-weight: bold;
-    color: white;
-    cursor: pointer;
-    margin-top: 15px;
-  }
-
- .colors {
-    --c1: #3b82f6;
-    --c2: #f97316;
-    --c3: #22c55e;
-    --c4: #a855f7;
-    --c5: #eab308;
-    --c6: #06b6d4;
-    --c7: #ec4899;
-  }
+ .popup.active { display: block; }
 </style>
 </head>
-<body class="colors">
+<body>
 
-  <div class="header">
-    <div class="highscore">👑 <span id="highscore">0</span></div>
-    <div class="score" id="score">0</div>
-    <div class="gear" onclick="alert('Setting belum ada bro')">⚙️</div>
+  <!-- MENU UTAMA -->
+  <div id="mainMenu" class="screen active">
+    <h1>BLOCK BLAST</h1>
+    <button class="btn" onclick="startClassic()">Mode Klasik</button>
+    <button class="btn" onclick="showScreen('dailyMenu')">Level Harian</button>
   </div>
 
-  <div class="game-container">
-    <div class="board" id="board"></div>
-
-    <div class="blocks-container" id="blocksContainer"></div>
+  <!-- MENU HARIAN -->
+  <div id="dailyMenu" class="screen">
+    <h2>Level Harian</h2>
+    <div class="btn-grid" id="dailyGrid"></div>
+    <button class="btn btn-secondary" onclick="showScreen('mainMenu')">Kembali</button>
   </div>
 
-  <div class="game-over" id="gameOver">
-    <h2>Game Over!</h2>
+  <!-- GAME SCREEN -->
+  <div id="gameScreen" class="screen">
+    <div class="header">
+      <div class="highscore">👑 <span id="highscore">0</span></div>
+      <div class="score" id="score">0</div>
+      <div onclick="quitGame()">✕</div>
+    </div>
+
+    <div class="game-container">
+      <div class="board" id="board"></div>
+      <div class="blocks-container" id="blocksContainer"></div>
+    </div>
+  </div>
+
+  <!-- POPUP -->
+  <div id="popup" class="popup">
+    <h2 id="popupTitle">Game Over!</h2>
     <p>Skor: <span id="finalScore">0</span></p>
-    <button class="btn" onclick="restartGame()">Main Lagi</button>
+    <button class="btn" id="popupBtn" onclick="restartGame()">Main Lagi</button>
+    <button class="btn btn-secondary" onclick="quitGame()">Menu</button>
   </div>
 
 <script>
@@ -175,26 +212,71 @@ let highscore = localStorage.getItem('blockblast_highscore') || 0;
 let currentBlocks = [];
 let selectedBlock = null;
 let selectedBlockIndex = -1;
+let gameMode = 'classic';
+let dailyLevel = 1;
+let targetScore = 0;
 
 document.getElementById('highscore').textContent = highscore;
 
-// Bentuk blok yang tersedia
 const blockShapes = [
-  [[1]], // 1x1
-  [[1,1]], // 2x1
-  [[1],[1]], // 1x2
-  [[1,1,1]], // 3x1
-  [[1],[1],[1]], // 1x3
-  [[1,1],[1,1]], // 2x2
-  [[1,1,1,1]], // 4x1
-  [[1,1,1],[1,0,0]], // L
-  [[1,1,1],[0,0,1]], // L mirror
-  [[1,1,0],[0,1,1]], // Z
-  [[0,1,1],[1,1,0]], // Z mirror
-  [[1,1,1],[0,1,0]], // T
+  [[1]], [[1,1]], [[1],[1]], [[1,1,1]], [[1],[1],[1]],
+  [[1,1],[1,1]], [[1,1,1,1]],
+  [[1,1,1],[1,0,0]], [[1,1,1],[0,0,1]],
+  [[1,1,0],[0,1,1]], [[0,1,1],[1,1,0]],
+  [[1,1,1],[0,1,0]]
 ];
 
-// Buat board
+const dailyLevels = Array.from({length: 30}, (_, i) => ({
+  target: 200 + i * 100,
+  limit: 20 + i // batas blok yang bisa dipasang
+}));
+
+function showScreen(screenId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(screenId).classList.add('active');
+
+  if (screenId === 'dailyMenu') loadDailyLevels();
+}
+
+function loadDailyLevels() {
+  const grid = document.getElementById('dailyGrid');
+  grid.innerHTML = '';
+
+  dailyLevels.forEach((lvl, i) => {
+    const card = document.createElement('div');
+    card.className = 'mode-card';
+    card.onclick = () => startDaily(i + 1);
+    card.innerHTML = `
+      <div class="mode-num">${i + 1}</div>
+      <div class="mode-target">Target ${lvl.target}</div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function startClassic() {
+  gameMode = 'classic';
+  targetScore = 999;
+  startGame();
+}
+
+function startDaily(lvl) {
+  gameMode = 'daily';
+  dailyLevel = lvl;
+  targetScore = dailyLevels[lvl - 1].target;
+  startGame();
+}
+
+function startGame() {
+  board = Array(boardSize).fill().map(() => Array(boardSize).fill(0));
+  score = 0;
+  updateScore();
+  showScreen('gameScreen');
+  createBoard();
+  generateBlocks();
+  renderBoard();
+}
+
 function createBoard() {
   const boardEl = document.getElementById('board');
   boardEl.innerHTML = '';
@@ -205,7 +287,6 @@ function createBoard() {
   }
 }
 
-// Generate 3 blok random
 function generateBlocks() {
   currentBlocks = [];
   for (let i = 0; i < 3; i++) {
@@ -216,7 +297,6 @@ function generateBlocks() {
   renderBlocks();
 }
 
-// Render blok di bawah
 function renderBlocks() {
   const container = document.getElementById('blocksContainer');
   container.innerHTML = '';
@@ -225,7 +305,6 @@ function renderBlocks() {
     const piece = document.createElement('div');
     piece.className = 'block-piece';
     piece.style.gridTemplateColumns = `repeat(${block.shape[0].length}, 1fr)`;
-    piece.draggable = true;
 
     block.shape.forEach(row => {
       row.forEach(cell => {
@@ -238,20 +317,16 @@ function renderBlocks() {
       });
     });
 
-    piece.addEventListener('touchstart', (e) => selectBlock(e, index));
-    piece.addEventListener('mousedown', (e) => selectBlock(e, index));
+    piece.onclick = () => selectBlock(index);
     container.appendChild(piece);
   });
 }
 
-// Pilih blok
-function selectBlock(e, index) {
+function selectBlock(index) {
   selectedBlock = currentBlocks[index];
   selectedBlockIndex = index;
-  e.preventDefault();
 }
 
-// Render board ke layar
 function renderBoard() {
   const cells = document.querySelectorAll('#board.cell');
   for (let y = 0; y < boardSize; y++) {
@@ -268,7 +343,6 @@ function renderBoard() {
   }
 }
 
-// Cek bisa taruh blok di posisi x,y
 function canPlaceBlock(block, startX, startY) {
   for (let y = 0; y < block.shape.length; y++) {
     for (let x = 0; x < block.shape[0].length; x++) {
@@ -284,7 +358,6 @@ function canPlaceBlock(block, startX, startY) {
   return true;
 }
 
-// Taruh blok ke board
 function placeBlock(block, startX, startY) {
   for (let y = 0; y < block.shape.length; y++) {
     for (let x = 0; x < block.shape[0].length; x++) {
@@ -305,14 +378,18 @@ function placeBlock(block, startX, startY) {
   renderBoard();
   renderBlocks();
 
+  // Cek win di mode harian
+  if (gameMode === 'daily' && score >= targetScore) {
+    levelComplete();
+    return;
+  }
+
   if (!canPlaceAnyBlock()) gameOver();
 }
 
-// Cek baris/kolom penuh
 function checkLines() {
   let linesCleared = 0;
 
-  // Cek baris
   for (let y = 0; y < boardSize; y++) {
     if (board[y].every(cell => cell!== 0)) {
       board[y] = Array(boardSize).fill(0);
@@ -320,7 +397,6 @@ function checkLines() {
     }
   }
 
-  // Cek kolom
   for (let x = 0; x < boardSize; x++) {
     let full = true;
     for (let y = 0; y < boardSize; y++) {
@@ -335,7 +411,6 @@ function checkLines() {
   score += linesCleared * 100;
 }
 
-// Cek masih bisa taruh blok atau nggak
 function canPlaceAnyBlock() {
   for (let block of currentBlocks) {
     for (let y = 0; y < boardSize; y++) {
@@ -357,41 +432,61 @@ function updateScore() {
 }
 
 function gameOver() {
+  document.getElementById('popupTitle').textContent = 'Game Over!';
   document.getElementById('finalScore').textContent = score;
-  document.getElementById('gameOver').style.display = 'block';
+  document.getElementById('popupBtn').textContent = 'Main Lagi';
+  document.getElementById('popupBtn').onclick = restartGame;
+  document.getElementById('popup').classList.add('active');
+}
+
+function levelComplete() {
+  document.getElementById('popupTitle').textContent = 'Level Selesai!';
+  document.getElementById('finalScore').textContent = score;
+  document.getElementById('popupBtn').textContent = dailyLevel < 30? 'Next Level' : 'Selesai';
+  document.getElementById('popupBtn').onclick = () => {
+    if (dailyLevel < 30) startDaily(dailyLevel + 1);
+    else quitGame();
+  };
+  document.getElementById('popup').classList.add('active');
 }
 
 function restartGame() {
-  board = Array(boardSize).fill().map(() => Array(boardSize).fill(0));
-  score = 0;
-  updateScore();
-  document.getElementById('gameOver').style.display = 'none';
-  generateBlocks();
-  renderBoard();
+  document.getElementById('popup').classList.remove('active');
+  startGame();
 }
 
-// Touch & Mouse event buat taruh blok
-const boardEl = document.getElementById('board');
-boardEl.addEventListener('click', handleBoardClick);
-boardEl.addEventListener('touchend', handleBoardClick);
+function quitGame() {
+  document.getElementById('popup').classList.remove('active');
+  showScreen('mainMenu');
+}
 
-function handleBoardClick(e) {
+// Klik board buat taruh blok
+document.getElementById('board').addEventListener('click', (e) => {
   if (!selectedBlock) return;
 
-  const rect = boardEl.getBoundingClientRect();
+  const rect = e.currentTarget.getBoundingClientRect();
   const cellSize = rect.width / boardSize;
-  const x = Math.floor((e.clientX || e.changedTouches[0].clientX - rect.left) / cellSize);
-  const y = Math.floor((e.clientY || e.changedTouches[0].clientY - rect.top) / cellSize);
+  const x = Math.floor((e.clientX - rect.left) / cellSize);
+  const y = Math.floor((e.clientY - rect.top) / cellSize);
 
   if (canPlaceBlock(selectedBlock, x, y)) {
     placeBlock(selectedBlock, x, y);
   }
-}
+});
 
-// Init game
-createBoard();
-generateBlocks();
-renderBoard();
+// Support touch
+document.getElementById('board').addEventListener('touchend', (e) => {
+  e.preventDefault();
+  const touch = e.changedTouches[0];
+  const rect = e.currentTarget.getBoundingClientRect();
+  const cellSize = rect.width / boardSize;
+  const x = Math.floor((touch.clientX - rect.left) / cellSize);
+  const y = Math.floor((touch.clientY - rect.top) / cellSize);
+
+  if (selectedBlock && canPlaceBlock(selectedBlock, x, y)) {
+    placeBlock(selectedBlock, x, y);
+  }
+});
 </script>
 </body>
 </html>
