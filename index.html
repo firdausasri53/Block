@@ -3,124 +3,286 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Block Stack Game</title>
+<title>Block Stack</title>
 <style>
-    * { box-sizing: border-box; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+  
   body {
-    margin: 0; background: #2a2e4a; font-family: Arial, sans-serif;
-    color: white; display: flex; flex-direction: column; height: 100vh;
+    background: linear-gradient(180deg, #1e1b4b 0%, #312e81 100%);
+    font-family: 'Arial', sans-serif;
+    color: white;
+    height: 100vh;
     overflow: hidden;
   }
-  .topbar {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 10px; background: #1f2238; font-size: 14px;
-  }
-  .profile { display: flex; align-items: center; gap: 8px; }
-  .profile img { width: 40px; height: 40px; border-radius: 12px; }
-  .coin, .heart {
-    background: #f0b400; padding: 5px 10px; border-radius: 20px;
-    display: flex; align-items: center; gap: 5px; font-weight: bold;
-  }
-  .heart { background: #ff4d6d; }
-  
-  .main { flex: 1; display: flex; justify-content: space-between; padding: 8px; }
-  .side-menu {
-    display: flex; flex-direction: column; gap: 8px; width: 65px;
-  }
-  .menu-item {
-    background: rgba(255,255,255,0.1); border-radius: 12px;
-    padding: 6px; text-align: center; font-size: 9px;
-  }
-  
-  .game-area {
-    flex: 1; display: flex; flex-direction: column; align-items: center;
+
+  /* LAYAR 1: MENU UTAMA */
+  #mainMenu {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
-  }
-  canvas {
-    background: #1f2238; border-radius: 15px;
-    max-width: 90vw; max-height: 50vh;
-  }
-  .score { font-size: 22px; font-weight: bold; margin-bottom: 10px; }
-  
-  .play-btn {
-    background: #22c55e; border: none;
-    padding: 12px 40px; border-radius: 15px;
-    font-size: 20px; font-weight: bold; color: white;
-    margin: 10px auto; display: block; cursor: pointer;
-  }
-  .play-btn:active { transform: scale(0.95); }
-  
-  .navbar {
-    display: flex; background: #3b82f6;
-    border-top-left-radius: 25px; border-top-right-radius: 25px;
-    padding: 10px; justify-content: space-around;
+    height: 100vh;
+    text-align: center;
   }
   
-  #levelMenu, #gameOver {
-    position: absolute; top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(0,0,0,0.9); padding: 25px;
-    border-radius: 20px; text-align: center;
-    width: 80%; max-width: 300px;
+  #mainMenu h1 {
+    font-size: 48px;
+    margin-bottom: 10px;
+    color: #a5b4fc;
+    text-shadow: 0 0 20px #6366f1;
   }
-  #levelMenu h2 { margin-top: 0; }
-  .level-btn {
-    background: #3b82f6; border: none; color: white;
-    padding: 15px; margin: 8px 0; width: 100%;
-    border-radius: 12px; font-size: 18px; font-weight: bold;
+  
+  #mainMenu p {
+    font-size: 16px;
+    opacity: 0.7;
+    margin-bottom: 40px;
+  }
+  
+  .menu-btn {
+    background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+    border: none;
+    padding: 18px 60px;
+    border-radius: 15px;
+    font-size: 22px;
+    font-weight: bold;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 5px 20px rgba(34, 197, 94, 0.4);
+    transition: 0.1s;
+  }
+  
+  .menu-btn:active {
+    transform: scale(0.95);
+  }
+
+  /* LAYAR 2: PILIH LEVEL */
+  #levelScreen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    padding: 20px;
+  }
+  
+  #levelScreen h2 {
+    font-size: 32px;
+    margin-bottom: 30px;
+    color: #c7d2fe;
+  }
+  
+  .level-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    width: 100%;
+    max-width: 320px;
+  }
+  
+  .level-card {
+    background: rgba(255,255,255,0.1);
+    border: 2px solid rgba(99, 102, 241, 0.5);
+    border-radius: 15px;
+    padding: 25px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  
+  .level-card:active {
+    transform: scale(0.95);
+    background: rgba(99, 102, 241, 0.3);
+  }
+  
+  .level-card .level-num {
+    font-size: 28px;
+    font-weight: bold;
+    color: #a5b4fc;
+  }
+  
+  .level-card .level-diff {
+    font-size: 12px;
+    opacity: 0.6;
+    margin-top: 5px;
+  }
+  
+  .back-btn {
+    margin-top: 30px;
+    background: transparent;
+    border: 2px solid rgba(255,255,255,0.3);
+    color: white;
+    padding: 12px 40px;
+    border-radius: 12px;
+    font-size: 16px;
     cursor: pointer;
   }
-  .level-btn:active { transform: scale(0.95); }
-  #gameContainer, #gameOver { display: none; }
+
+  /* LAYAR 3: GAME */
+  #gameScreen {
+    display: none;
+    flex-direction: column;
+    height: 100vh;
+  }
+  
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background: rgba(0,0,0,0.3);
+  }
+  
+  .stat {
+    background: rgba(0,0,0,0.4);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 14px;
+  }
+  
+  .stat.coin { background: #f0b400; color: #1e1b4b; }
+  .stat.heart { background: #ff4d6d; }
+  
+  .game-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  canvas {
+    background: rgba(0,0,0,0.4);
+    border-radius: 15px;
+    max-width: 90vw;
+    max-height: 55vh;
+  }
+  
+  .game-info {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    text-align: center;
+  }
+  
+  .game-info span {
+    color: #a5b4fc;
+  }
+  
+  .game-controls {
+    display: flex;
+    gap: 10px;
+    padding: 15px;
+    background: rgba(0,0,0,0.3);
+  }
+  
+  .ctrl-btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  
+  .ctrl-btn.back {
+    background: rgba(255,255,255,0.1);
+    color: white;
+  }
+  
+  .ctrl-btn.retry {
+    background: #22c55e;
+    color: white;
+  }
+
+  /* POPUP GAME OVER */
+  #gameOver {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(15, 23, 42, 0.95);
+    padding: 30px;
+    border-radius: 20px;
+    text-align: center;
+    border: 2px solid #6366f1;
+    width: 85%;
+    max-width: 300px;
+  }
+  
+  #gameOver h2 {
+    font-size: 28px;
+    margin-bottom: 10px;
+    color: #f87171;
+  }
+  
+  #gameOver p {
+    font-size: 18px;
+    margin-bottom: 20px;
+  }
 </style>
 </head>
 <body>
 
-  <div class="topbar">
-    <div class="profile">
-      <img src="https://i.pravatar.cc/100">
-      <span>P9739</span>
-    </div>
-    <div class="coin">🪙 <span id="coins">90</span> +</div>
-    <div class="heart">❤️ <span id="lives">3</span> <span id="timer">21:40</span> +</div>
-    <div>⚙️</div>
+  <!-- LAYAR 1: MENU UTAMA -->
+  <div id="mainMenu">
+    <h1>STACK BLOCK</h1>
+    <p>Susun blok setinggi mungkin!</p>
+    <button class="menu-btn" onclick="showLevelScreen()">PLAY</button>
   </div>
 
-  <div id="levelMenu">
+  <!-- LAYAR 2: PILIH LEVEL -->
+  <div id="levelScreen">
     <h2>Pilih Level</h2>
-    <button class="level-btn" onclick="startLevel(43, 2)">Level 43</button>
-    <button class="level-btn" onclick="startLevel(44, 3)">Level 44</button>
-    <button class="level-btn" onclick="startLevel(45, 4)">Level 45</button>
-  </div>
-
-  <div id="gameContainer">
-    <div class="main">
-      <div class="side-menu">
-        <div class="menu-item">🟨<br>VOXEL PASS</div>
-        <div class="menu-item">📋<br>MISSIONS</div>
-        <div class="menu-item">👽<br>Cosmic</div>
+    <div class="level-grid">
+      <div class="level-card" onclick="startGame(43, 2)">
+        <div class="level-num">43</div>
+        <div class="level-diff">Mudah</div>
       </div>
-
-      <div class="game-area">
-        <div class="score">Level <span id="currentLevel">43</span> | Score: <span id="score">0</span></div>
-        <canvas id="gameCanvas" width="200" height="300"></canvas>
+      <div class="level-card" onclick="startGame(44, 3)">
+        <div class="level-num">44</div>
+        <div class="level-diff">Sedang</div>
       </div>
-
-      <div class="side-menu">
-        <div class="menu-item">📺<br>No Ads</div>
-        <div class="menu-item">🎁<br>Offer</div>
-        <div class="menu-item">🏷️<br>Bounty</div>
+      <div class="level-card" onclick="startGame(45, 4)">
+        <div class="level-num">45</div>
+        <div class="level-diff">Sulit</div>
+      </div>
+      <div class="level-card" onclick="startGame(46, 5)">
+        <div class="level-num">46</div>
+        <div class="level-diff">Gila</div>
       </div>
     </div>
-    <button class="play-btn" onclick="backToMenu()">Back</button>
-    <div class="navbar">🏪 🏠 🏆</div>
+    <button class="back-btn" onclick="backToMenu()">Kembali</button>
   </div>
 
+  <!-- LAYAR 3: GAME -->
+  <div id="gameScreen">
+    <div class="topbar">
+      <div class="stat coin">🪙 <span id="coins">90</span></div>
+      <div class="stat heart">❤️ <span id="lives">3</span></div>
+    </div>
+    
+    <div class="game-area">
+      <div class="game-info">
+        Level <span id="currentLevel">43</span> | Skor: <span id="score">0</span>
+      </div>
+      <canvas id="gameCanvas" width="200" height="300"></canvas>
+    </div>
+    
+    <div class="game-controls">
+      <button class="ctrl-btn back" onclick="quitToMenu()">Menu</button>
+      <button class="ctrl-btn retry" onclick="restartGame()">Ulang</button>
+    </div>
+  </div>
+
+  <!-- POPUP GAME OVER -->
   <div id="gameOver">
     <h2>Game Over!</h2>
-    <p>Score: <span id="finalScore">0</span></p>
-    <button class="play-btn" onclick="retryLevel()">Retry</button>
-    <button class="play-btn" onclick="backToMenu()">Menu</button>
+    <p>Skor: <span id="finalScore">0</span></p>
+    <button class="menu-btn" onclick="restartGame()">Main Lagi</button>
+    <button class="back-btn" onclick="quitToMenu()">Menu</button>
   </div>
 
 <script>
@@ -133,27 +295,74 @@ let stack = [], currentBlock = { x: 2, y: 0, width: 2 };
 let direction = 1, speed = 2, score = 0, level = 43, lives = 3;
 let gameRunning = false, animId;
 
-function startLevel(lvl, spd) {
+// NAVIGASI LAYAR
+function showLevelScreen() {
+  document.getElementById('mainMenu').style.display = 'none';
+  document.getElementById('levelScreen').style.display = 'flex';
+}
+
+function backToMenu() {
+  document.getElementById('levelScreen').style.display = 'none';
+  document.getElementById('mainMenu').style.display = 'flex';
+}
+
+function quitToMenu() {
+  gameRunning = false;
+  cancelAnimationFrame(animId);
+  document.getElementById('gameScreen').style.display = 'none';
+  document.getElementById('gameOver').style.display = 'none';
+  document.getElementById('levelScreen').style.display = 'flex';
+}
+
+// GAME LOGIC
+function startGame(lvl, spd) {
   level = lvl;
   speed = spd;
   score = 0;
   lives = 3;
+  
+  document.getElementById('levelScreen').style.display = 'none';
+  document.getElementById('gameScreen').style.display = 'flex';
+  
   document.getElementById('currentLevel').textContent = level;
   document.getElementById('score').textContent = score;
   document.getElementById('lives').textContent = lives;
   
-  document.getElementById('levelMenu').style.display = 'none';
-  document.getElementById('gameContainer').style.display = 'block';
-  
   restartGame();
+}
+
+function restartGame() {
+  stack = [];
+  currentBlock = { x: 2, y: 0, width: 2 };
+  direction = 1;
+  score = 0;
+  document.getElementById('score').textContent = 0;
+  document.getElementById('lives').textContent = lives;
+  document.getElementById('gameOver').style.display = 'none';
+  gameRunning = true;
+  update();
+}
+
+function update() {
+  if (!gameRunning) return;
+  
+  currentBlock.x += direction * 0.1 * speed;
+  if (currentBlock.x <= 0 || currentBlock.x + currentBlock.width >= cols) direction *= -1;
+  
+  draw();
+  animId = requestAnimationFrame(update);
 }
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  // Draw stack
   ctx.fillStyle = '#8b5cf6';
   stack.forEach(b => {
     ctx.fillRect(b.x * blockSize, b.y * blockSize, b.width * blockSize, blockSize);
   });
+  
+  // Draw moving block
   if (gameRunning) {
     ctx.fillStyle = '#22c55e';
     ctx.fillRect(currentBlock.x * blockSize, currentBlock.y * blockSize, 
@@ -161,29 +370,25 @@ function draw() {
   }
 }
 
-function update() {
-  if (!gameRunning) return;
-  currentBlock.x += direction * 0.1 * speed;
-  if (currentBlock.x <= 0 || currentBlock.x + currentBlock.width >= cols) direction *= -1;
-  draw();
-  animId = requestAnimationFrame(update);
-}
-
 function dropBlock() {
   if (!gameRunning) return;
+  
   if (stack.length > 0) {
     let below = stack[stack.length - 1];
     let overlap = Math.min(currentBlock.x + currentBlock.width, below.x + below.width) - 
                   Math.max(currentBlock.x, below.x);
+    
     if (overlap <= 0) {
       loseLife();
       return;
     }
+    
     currentBlock.x = Math.max(currentBlock.x, below.x);
     currentBlock.width = overlap;
     score += Math.floor(overlap * 10);
     document.getElementById('score').textContent = score;
   }
+  
   stack.push({...currentBlock, y: stack.length});
   currentBlock = { x: 2, y: 0, width: Math.max(1, currentBlock.width) };
 }
@@ -191,6 +396,7 @@ function dropBlock() {
 function loseLife() {
   lives--;
   document.getElementById('lives').textContent = lives;
+  
   if (lives <= 0) {
     endGame();
   } else {
@@ -206,32 +412,14 @@ function endGame() {
   document.getElementById('gameOver').style.display = 'block';
 }
 
-function restartGame() {
-  stack = []; currentBlock = { x: 2, y: 0, width: 2 };
-  direction = 1;
-  document.getElementById('gameOver').style.display = 'none';
-  gameRunning = true; 
-  update();
-}
-
-function retryLevel() {
-  startLevel(level, speed);
-}
-
-function backToMenu() {
-  gameRunning = false;
-  cancelAnimationFrame(animId);
-  document.getElementById('gameContainer').style.display = 'none';
-  document.getElementById('gameOver').style.display = 'none';
-  document.getElementById('levelMenu').style.display = 'block';
-}
-
+// EVENT LISTENER
 canvas.addEventListener('click', dropBlock);
 canvas.addEventListener('touchstart', (e) => {
   e.preventDefault();
   dropBlock();
 });
 
+// Draw sekali biar canvas gak kosong
 draw();
 </script>
 </body>
