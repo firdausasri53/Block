@@ -7,61 +7,46 @@
 <style>
     * { box-sizing: border-box; }
   body {
-    margin: 0;
-    background: #2a2e4a;
-    font-family: 'Arial', sans-serif;
-    color: white;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
+    margin: 0; background: #2a2e4a; font-family: Arial, sans-serif;
+    color: white; display: flex; flex-direction: column; height: 100vh;
     overflow: hidden;
   }
   .topbar {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 10px; background: #1f2238;
+    padding: 10px; background: #1f2238; font-size: 14px;
   }
   .profile { display: flex; align-items: center; gap: 8px; }
-  .profile img { width: 45px; height: 45px; border-radius: 12px; }
+  .profile img { width: 40px; height: 40px; border-radius: 12px; }
   .coin, .heart {
-    background: #f0b400; padding: 6px 12px; border-radius: 20px;
-    display: flex; align-items: center; gap: 5px; font-weight: bold; font-size: 14px;
+    background: #f0b400; padding: 5px 10px; border-radius: 20px;
+    display: flex; align-items: center; gap: 5px; font-weight: bold;
   }
   .heart { background: #ff4d6d; }
-  .plus { background: rgba(255,255,255,0.3); border-radius: 50%; padding: 2px 6px; }
   
-  .main {
-    flex: 1; display: flex; justify-content: space-between; padding: 8px;
-    overflow: hidden;
-  }
+  .main { flex: 1; display: flex; justify-content: space-between; padding: 8px; }
   .side-menu {
-    display: flex; flex-direction: column; gap: 10px; width: 70px;
+    display: flex; flex-direction: column; gap: 8px; width: 65px;
   }
   .menu-item {
     background: rgba(255,255,255,0.1); border-radius: 12px;
-    padding: 6px; text-align: center; font-size: 10px;
+    padding: 6px; text-align: center; font-size: 9px;
   }
-  .menu-item img { width: 30px; height: 30px; }
-  .locked { opacity: 0.4; }
   
   .game-area {
     flex: 1; display: flex; flex-direction: column; align-items: center;
-    justify-content: flex-end; padding-bottom: 20px;
+    justify-content: center;
   }
   canvas {
     background: #1f2238; border-radius: 15px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    max-width: 90vw; max-height: 50vh;
   }
-  .score {
-    font-size: 24px; font-weight: bold; margin-bottom: 10px;
-    text-shadow: 0 2px 5px rgba(0,0,0,0.5);
-  }
+  .score { font-size: 22px; font-weight: bold; margin-bottom: 10px; }
   
   .play-btn {
     background: #22c55e; border: none;
     padding: 12px 40px; border-radius: 15px;
     font-size: 20px; font-weight: bold; color: white;
-    margin: 10px auto; display: block;
-    box-shadow: 0 4px 15px rgba(34,197,94,0.4);
+    margin: 10px auto; display: block; cursor: pointer;
   }
   .play-btn:active { transform: scale(0.95); }
   
@@ -70,62 +55,72 @@
     border-top-left-radius: 25px; border-top-right-radius: 25px;
     padding: 10px; justify-content: space-around;
   }
-  .nav-item img { width: 40px; height: 40px; }
   
-  #gameOver {
+  #levelMenu, #gameOver {
     position: absolute; top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    background: rgba(0,0,0,0.85); padding: 30px;
-    border-radius: 20px; text-align: center; display: none;
+    background: rgba(0,0,0,0.9); padding: 25px;
+    border-radius: 20px; text-align: center;
+    width: 80%; max-width: 300px;
   }
+  #levelMenu h2 { margin-top: 0; }
+  .level-btn {
+    background: #3b82f6; border: none; color: white;
+    padding: 15px; margin: 8px 0; width: 100%;
+    border-radius: 12px; font-size: 18px; font-weight: bold;
+    cursor: pointer;
+  }
+  .level-btn:active { transform: scale(0.95); }
+  #gameContainer, #gameOver { display: none; }
 </style>
 </head>
 <body>
 
   <div class="topbar">
     <div class="profile">
-      <img src="https://i.pravatar.cc/100" alt="avatar">
+      <img src="https://i.pravatar.cc/100">
       <span>P9739</span>
     </div>
-    <div class="coin">🪙 <span id="coins">90</span> <span class="plus">+</span></div>
-    <div class="heart">❤️ 0 <span>21:40</span> <span class="plus">+</span></div>
+    <div class="coin">🪙 <span id="coins">90</span> +</div>
+    <div class="heart">❤️ <span id="lives">3</span> <span id="timer">21:40</span> +</div>
     <div>⚙️</div>
   </div>
 
-  <div class="main">
-    <div class="side-menu">
-      <div class="menu-item">🟨<br>VOXEL PASS</div>
-      <div class="menu-item locked">📋<br>MISSIONS 🔒</div>
-      <div class="menu-item locked">🍵<br>GALACTIC 🔒</div>
-      <div class="menu-item">👽<br>Cosmic Combo</div>
-      <div class="menu-item">🩷<br>Voxy Bank</div>
-    </div>
-
-    <div class="game-area">
-      <div class="score">Score: <span id="score">0</span></div>
-      <canvas id="gameCanvas" width="200" height="300"></canvas>
-    </div>
-
-    <div class="side-menu">
-      <div class="menu-item">📺<br>No Ads</div>
-      <div class="menu-item">🎁<br>Welcome Offer</div>
-      <div class="menu-item">🧰<br>Gold Offer</div>
-      <div class="menu-item">🏷️<br>Endless Bounty</div>
-    </div>
+  <div id="levelMenu">
+    <h2>Pilih Level</h2>
+    <button class="level-btn" onclick="startLevel(43, 2)">Level 43</button>
+    <button class="level-btn" onclick="startLevel(44, 3)">Level 44</button>
+    <button class="level-btn" onclick="startLevel(45, 4)">Level 45</button>
   </div>
 
-  <button class="play-btn" id="playBtn">Play</button>
+  <div id="gameContainer">
+    <div class="main">
+      <div class="side-menu">
+        <div class="menu-item">🟨<br>VOXEL PASS</div>
+        <div class="menu-item">📋<br>MISSIONS</div>
+        <div class="menu-item">👽<br>Cosmic</div>
+      </div>
 
-  <div class="navbar">
-    <div class="nav-item">🏪</div>
-    <div class="nav-item">🏠</div>
-    <div class="nav-item">🏆</div>
+      <div class="game-area">
+        <div class="score">Level <span id="currentLevel">43</span> | Score: <span id="score">0</span></div>
+        <canvas id="gameCanvas" width="200" height="300"></canvas>
+      </div>
+
+      <div class="side-menu">
+        <div class="menu-item">📺<br>No Ads</div>
+        <div class="menu-item">🎁<br>Offer</div>
+        <div class="menu-item">🏷️<br>Bounty</div>
+      </div>
+    </div>
+    <button class="play-btn" onclick="backToMenu()">Back</button>
+    <div class="navbar">🏪 🏠 🏆</div>
   </div>
 
   <div id="gameOver">
     <h2>Game Over!</h2>
     <p>Score: <span id="finalScore">0</span></p>
-    <button class="play-btn" onclick="restartGame()">Retry</button>
+    <button class="play-btn" onclick="retryLevel()">Retry</button>
+    <button class="play-btn" onclick="backToMenu()">Menu</button>
   </div>
 
 <script>
@@ -133,83 +128,75 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const blockSize = 40;
 const cols = 5;
-const rows = 7;
 
-let stack = [];
-let currentBlock = { x: 2, y: 0, width: 2 };
-let direction = 1;
-let speed = 2;
-let score = 0;
-let gameRunning = false;
-let animId;
+let stack = [], currentBlock = { x: 2, y: 0, width: 2 };
+let direction = 1, speed = 2, score = 0, level = 43, lives = 3;
+let gameRunning = false, animId;
+
+function startLevel(lvl, spd) {
+  level = lvl;
+  speed = spd;
+  score = 0;
+  lives = 3;
+  document.getElementById('currentLevel').textContent = level;
+  document.getElementById('score').textContent = score;
+  document.getElementById('lives').textContent = lives;
+  
+  document.getElementById('levelMenu').style.display = 'none';
+  document.getElementById('gameContainer').style.display = 'block';
+  
+  restartGame();
+}
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
-  // Draw stack
   ctx.fillStyle = '#8b5cf6';
   stack.forEach(b => {
     ctx.fillRect(b.x * blockSize, b.y * blockSize, b.width * blockSize, blockSize);
-    ctx.strokeStyle = '#2a2e4a';
-    ctx.strokeRect(b.x * blockSize, b.y * blockSize, b.width * blockSize, blockSize);
   });
-  
-  // Draw current block
   if (gameRunning) {
     ctx.fillStyle = '#22c55e';
     ctx.fillRect(currentBlock.x * blockSize, currentBlock.y * blockSize, 
                  currentBlock.width * blockSize, blockSize);
-    ctx.strokeStyle = '#2a2e4a';
-    ctx.strokeRect(currentBlock.x * blockSize, currentBlock.y * blockSize, 
-                   currentBlock.width * blockSize, blockSize);
   }
 }
 
 function update() {
   if (!gameRunning) return;
-  
   currentBlock.x += direction * 0.1 * speed;
-  
-  if (currentBlock.x <= 0 || currentBlock.x + currentBlock.width >= cols) {
-    direction *= -1;
-  }
-  
+  if (currentBlock.x <= 0 || currentBlock.x + currentBlock.width >= cols) direction *= -1;
   draw();
   animId = requestAnimationFrame(update);
 }
 
 function dropBlock() {
   if (!gameRunning) return;
-  
-  let targetY = stack.length;
-  if (targetY >= rows) {
-    endGame();
-    return;
-  }
-  
-  // Check collision with block below
   if (stack.length > 0) {
     let below = stack[stack.length - 1];
-    let overlapStart = Math.max(currentBlock.x, below.x);
-    let overlapEnd = Math.min(currentBlock.x + currentBlock.width, below.x + below.width);
-    let overlap = overlapEnd - overlapStart;
-    
+    let overlap = Math.min(currentBlock.x + currentBlock.width, below.x + below.width) - 
+                  Math.max(currentBlock.x, below.x);
     if (overlap <= 0) {
-      endGame();
+      loseLife();
       return;
     }
-    
-    currentBlock.x = overlapStart;
+    currentBlock.x = Math.max(currentBlock.x, below.x);
     currentBlock.width = overlap;
     score += Math.floor(overlap * 10);
     document.getElementById('score').textContent = score;
   }
-  
-  stack.push({...currentBlock, y: targetY});
-  currentBlock = { x: 2, y: 0, width: currentBlock.width };
-  
-  // Increase speed every 3 blocks
-  if (stack.length % 3 === 0) speed += 0.5;
+  stack.push({...currentBlock, y: stack.length});
+  currentBlock = { x: 2, y: 0, width: Math.max(1, currentBlock.width) };
+}
+
+function loseLife() {
+  lives--;
+  document.getElementById('lives').textContent = lives;
+  if (lives <= 0) {
+    endGame();
+  } else {
+    stack.pop();
+    currentBlock = { x: 2, y: 0, width: 2 };
+  }
 }
 
 function endGame() {
@@ -220,30 +207,30 @@ function endGame() {
 }
 
 function restartGame() {
-  stack = [];
-  currentBlock = { x: 2, y: 0, width: 2 };
-  score = 0;
-  speed = 2;
+  stack = []; currentBlock = { x: 2, y: 0, width: 2 };
   direction = 1;
-  document.getElementById('score').textContent = 0;
   document.getElementById('gameOver').style.display = 'none';
-  startGame();
-}
-
-function startGame() {
-  gameRunning = true;
+  gameRunning = true; 
   update();
 }
 
-document.getElementById('playBtn').onclick = () => {
-  if (!gameRunning) startGame();
-};
+function retryLevel() {
+  startLevel(level, speed);
+}
 
-canvas.onclick = dropBlock;
-canvas.ontouchstart = (e) => {
+function backToMenu() {
+  gameRunning = false;
+  cancelAnimationFrame(animId);
+  document.getElementById('gameContainer').style.display = 'none';
+  document.getElementById('gameOver').style.display = 'none';
+  document.getElementById('levelMenu').style.display = 'block';
+}
+
+canvas.addEventListener('click', dropBlock);
+canvas.addEventListener('touchstart', (e) => {
   e.preventDefault();
   dropBlock();
-};
+});
 
 draw();
 </script>
