@@ -32,7 +32,7 @@
     touch-action: none;
   }
 
- #cell {
+ .cell {
     width: 100%;
     aspect-ratio: 1;
     background: #0f3460;
@@ -41,7 +41,7 @@
 
  .cell.filled { background: #e94560; }
 
-#blocksContainer {
+ #blocksContainer {
     display: flex;
     gap: 15px;
     margin-top: 20px;
@@ -49,7 +49,7 @@
     flex-wrap: wrap;
   }
 
- #block-piece {
+ .block-piece {
     display: grid;
     gap: 4px;
     padding: 8px;
@@ -59,12 +59,12 @@
     background: rgba(255,255,255,0.1);
   }
 
- #block-piece.selected {
+ .block-piece.selected {
     background: rgba(255,255,255,0.3);
     outline: 2px solid #00ff88;
   }
 
- #block-cell {
+ .block-cell {
     width: 28px;
     height: 28px;
     border-radius: 6px;
