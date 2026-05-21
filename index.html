@@ -74,8 +74,15 @@
     aspect-ratio: 1;
   }
 
-.cell { background: rgba(0,0,0,0.4); border-radius: 6px; }
-.cell.filled { border-radius: 8px; }
+.cell {
+    background: rgba(0,0,0,0.4);
+    border-radius: 6px;
+    transition: 0.1s;
+  }
+
+.cell.filled {
+    border-radius: 8px;
+  }
 
 .blocks-container {
     display: flex;
@@ -310,7 +317,7 @@ function placeBlock(block, startX, startY) {
   if (currentBlocks.length === 0) generateBlocks();
 
   updateScore();
-  renderBoard();
+  renderBoard(); // <-- WAJIB DIPANGGIL SETELAH PLACE
   renderBlocks();
 
   if (gameMode === 'daily' && score >= targetScore) {
@@ -357,18 +364,21 @@ function canPlaceAnyBlock() {
 }
 
 function renderBoard() {
-  const cells = document.querySelectorAll('#board.cell'); // <-- PENTING: ADA SPASI
+  const cells = document.querySelectorAll('#board.cell'); // ADA SPASI!
+
   for (let y = 0; y < boardSize; y++) {
     for (let x = 0; x < boardSize; x++) {
-      const cell = cells[y * boardSize + x];
-      if (cell) {
-        if (board[y][x]) {
-          cell.className = 'cell filled';
-          cell.style.background = board[y][x];
-        } else {
-          cell.className = 'cell';
-          cell.style.background = '';
-        }
+      const index = y * boardSize + x;
+      const cell = cells[index];
+
+      if (!cell) continue; // jaga-jaga
+
+      if (board[y][x]) {
+        cell.className = 'cell filled';
+        cell.style.background = board[y][x];
+      } else {
+        cell.className = 'cell';
+        cell.style.background = '';
       }
     }
   }
