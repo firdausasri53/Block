@@ -3,247 +3,134 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Block Blast</title>
+<title>Block Puzzle</title>
 <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    background: linear-gradient(180deg, #4a6cf7 0%, #8b9cff 100%);
-    font-family: Arial, sans-serif;
+    background: #1a1a2e;
     color: white;
-    height: 100vh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-  }
-
-.screen { display: none; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; }
-.screen.active { display: flex; }
-
-.btn {
-    background: #22c55e;
-    border: none; padding: 16px 50px; border-radius: 15px;
-    font-size: 20px; font-weight: bold; color: white;
-    cursor: pointer; margin: 8px; width: 100%; max-width: 280px;
-  }
-.btn:active { transform: scale(0.95); }
-
-.btn-secondary { background: transparent; border: 2px solid rgba(255,255,255,0.3); }
-
-.btn-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    width: 100%;
-    max-width: 320px;
-    max-height: 60vh;
-    overflow-y: auto;
-  }
-
-.mode-card {
-    background: rgba(255,255,255,0.15);
-    border: 2px solid rgba(255,255,255,0.3);
-    border-radius: 12px;
-    padding: 15px 5px;
-    text-align: center;
-  }
-
-.header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; width: 100%; flex-shrink: 0; }
-.score { font-size: 32px; font-weight: bold; }
-.highscore { color: #fbbf24; font-size: 18px; font-weight: bold; }
-
-.game-container {
-    flex: 1;
+    font-family: Arial, sans-serif;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: space-between;
     padding: 10px;
-    width: 100%;
+    min-height: 100vh;
+    touch-action: none;
   }
+  h1 { margin-bottom: 10px; font-size: 24px; }
+  #score { font-size: 20px; margin-bottom: 10px; }
 
-.board {
-    background: rgba(0,0,0,0.3);
-    padding: 8px;
-    border-radius: 15px;
+  #board {
     display: grid;
     grid-template-columns: repeat(8, 1fr);
     gap: 4px;
-    width: 95vw;
+    background: #16213e;
+    padding: 8px;
+    border-radius: 12px;
+    width: 90vw;
     max-width: 360px;
-    aspect-ratio: 1;
   }
 
-.cell {
-    background: rgba(0,0,0,0.4);
-    border-radius: 6px;
-    transition: 0.1s;
-  }
-
-.cell.filled {
-    border-radius: 8px;
-  }
-
-.blocks-container {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
+ .cell {
     width: 100%;
-    max-width: 360px;
-    height: 100px;
-    flex-shrink: 0;
-    margin-bottom: 10px;
+    aspect-ratio: 1;
+    background: #0f3460;
+    border-radius: 6px;
   }
 
-.block-piece {
+ .cell.filled { background: #e94560; }
+
+  #blocksContainer {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+ .block-piece {
     display: grid;
     gap: 4px;
     padding: 8px;
     border-radius: 10px;
     cursor: pointer;
     touch-action: none;
+    background: rgba(255,255,255,0.1);
   }
 
-.block-piece.selected { background: rgba(255,255,255,0.25); transform: scale(1.1); }
-.block-cell { width: 28px; height: 28px; border-radius: 6px; pointer-events: none; }
-
-.popup {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(15, 23, 42, 0.95);
-    padding: 30px; border-radius: 20px; text-align: center;
-    display: none; border: 2px solid #6366f1; z-index: 10;
+ .block-piece.selected {
+    background: rgba(255,255,255,0.3);
+    outline: 2px solid #00ff88;
   }
-.popup.active { display: block; }
 
-h1, h2 { color: white; text-align: center; }
+ .block-cell {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+  }
 </style>
 </head>
 <body>
 
-  <div id="mainMenu" class="screen active">
-    <h1>BLOCK BLAST</h1>
-    <button class="btn" onclick="startClassic()">Mode Klasik</button>
-    <button class="btn" onclick="showScreen('dailyMenu')">Level Harian</button>
-  </div>
-
-  <div id="dailyMenu" class="screen">
-    <h2>Level Harian</h2>
-    <div class="btn-grid" id="dailyGrid"></div>
-    <button class="btn btn-secondary" onclick="showScreen('mainMenu')">Kembali</button>
-  </div>
-
-  <div id="gameScreen" class="screen">
-    <div class="header">
-      <div class="highscore">👑 <span id="highscore">0</span></div>
-      <div class="score" id="score">0</div>
-      <div onclick="quitGame()" style="font-size:28px;">✕</div>
-    </div>
-
-    <div class="game-container">
-      <div class="board" id="board"></div>
-      <div class="blocks-container" id="blocksContainer"></div>
-    </div>
-  </div>
-
-  <div id="popup" class="popup">
-    <h2 id="popupTitle">Game Over!</h2>
-    <p>Skor: <span id="finalScore">0</span></p>
-    <button class="btn" id="popupBtn" onclick="restartGame()">Main Lagi</button>
-    <button class="btn btn-secondary" onclick="quitGame()">Menu</button>
-  </div>
+<h1>Block Puzzle</h1>
+<div id="score">Skor: 0</div>
+<div id="board"></div>
+<div id="blocksContainer"></div>
 
 <script>
 const boardSize = 8;
-const colors = ['#3b82f6', '#f97316', '#22c55e', '#a855f7', '#eab308', '#06b6d4', '#ec4899'];
-
 let board = [];
 let score = 0;
-let highscore = localStorage.getItem('blockblast_highscore') || 0;
 let currentBlocks = [];
 let selectedBlock = null;
 let selectedBlockIndex = -1;
-let gameMode = 'classic';
-let dailyLevel = 1;
-let targetScore = 0;
 
-document.getElementById('highscore').textContent = highscore;
+// Drag variables
+let dragGhost = null;
 
-const blockShapes = [
-  [[1]], [[1,1]], [[1],[1]], [[1,1,1]], [[1],[1],[1]],
-  [[1,1],[1,1]], [[1,1,1,1]],
-  [[1,1,1],[1,0,0]], [[1,1,1],[0,0,1]],
-  [[1,1,0],[0,1,1]], [[0,1,1],[1,1,0]],
-  [[1,1,1],[0,1,0]]
-];
-
-const dailyLevels = Array.from({length: 30}, (_, i) => ({ target: 200 + i * 100 }));
-
-function showScreen(screenId) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(screenId).classList.add('active');
-  if (screenId === 'dailyMenu') loadDailyLevels();
-}
-
-function loadDailyLevels() {
-  const grid = document.getElementById('dailyGrid');
-  grid.innerHTML = '';
-  dailyLevels.forEach((lvl, i) => {
-    const card = document.createElement('div');
-    card.className = 'mode-card';
-    card.onclick = () => startDaily(i + 1);
-    card.innerHTML = `<div>${i + 1}</div><div>Target ${lvl.target}</div>`;
-    grid.appendChild(card);
-  });
-}
-
-function startClassic() {
-  gameMode = 'classic';
-  targetScore = 999;
-  startGame();
-}
-
-function startDaily(lvl) {
-  gameMode = 'daily';
-  dailyLevel = lvl;
-  targetScore = dailyLevels[lvl - 1].target;
-  startGame();
-}
-
-function startGame() {
-  board = Array(boardSize).fill().map(() => Array(boardSize).fill(0));
-  score = 0;
-  updateScore();
-  showScreen('gameScreen');
-  createBoard();
+function initBoard() {
+  board = Array(boardSize).fill(null).map(() => Array(boardSize).fill(0));
+  const boardEl = document.getElementById('board');
+  boardEl.innerHTML = '';
+  for (let i = 0; i < boardSize * boardSize; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    boardEl.appendChild(cell);
+  }
   generateBlocks();
   renderBoard();
 }
 
-function createBoard() {
-  const boardEl = document.getElementById('board');
-  boardEl.innerHTML = '';
-  for (let y = 0; y < boardSize; y++) {
-    for (let x = 0; x < boardSize; x++) {
-      const cell = document.createElement('div');
-      cell.className = 'cell';
-      cell.dataset.x = x;
-      cell.dataset.y = y;
-      cell.onclick = () => handleBoardClick(x, y);
-      boardEl.appendChild(cell);
-    }
-  }
-}
-
 function generateBlocks() {
+  const shapes = [
+    {shape: [[1,1],[1,1]], color: '#e94560'},
+    {shape: [[1,1,1],[0,1,0]], color: '#00ff88'},
+    {shape: [[1,1,1,1]], color: '#00d9ff'},
+    {shape: [[1,0],[1,1],[0,1]], color: '#ffa500'},
+    {shape: [[1]], color: '#ff6b6b'}
+  ];
   currentBlocks = [];
   for (let i = 0; i < 3; i++) {
-    const shape = blockShapes[Math.floor(Math.random() * blockShapes.length)];
-    const color = colors[Math.floor(Math.random() * colors.length)];
-    currentBlocks.push({ shape, color });
+    const random = shapes[Math.floor(Math.random() * shapes.length)];
+    currentBlocks.push({...random});
   }
   renderBlocks();
+}
+
+function renderBoard() {
+  const cells = document.querySelectorAll('#board.cell');
+  for (let y = 0; y < boardSize; y++) {
+    for (let x = 0; x < boardSize; x++) {
+      const index = y * boardSize + x;
+      if (board[y][x]) {
+        cells[index].classList.add('filled');
+        cells[index].style.background = board[y][x];
+      } else {
+        cells[index].classList.remove('filled');
+        cells[index].style.background = '';
+      }
+    }
+  }
 }
 
 function renderBlocks() {
@@ -253,6 +140,7 @@ function renderBlocks() {
   currentBlocks.forEach((block, index) => {
     const piece = document.createElement('div');
     piece.className = 'block-piece';
+    if (index === selectedBlockIndex) piece.classList.add('selected');
     piece.style.gridTemplateColumns = `repeat(${block.shape[0].length}, 1fr)`;
 
     block.shape.forEach(row => {
@@ -266,8 +154,6 @@ function renderBlocks() {
       });
     });
 
-    // Drag events untuk HP
-    piece.draggable = false; // matiin drag bawaan browser
     piece.addEventListener('touchstart', (e) => handleTouchStart(e, index), {passive: false});
     piece.addEventListener('touchmove', (e) => handleTouchMove(e), {passive: false});
     piece.addEventListener('touchend', (e) => handleTouchEnd(e), {passive: false});
@@ -275,18 +161,12 @@ function renderBlocks() {
     container.appendChild(piece);
   });
 }
-   
-let draggedBlock = null;
-let draggedIndex = -1;
-let dragGhost = null;
 
 function handleTouchStart(e, index) {
   e.preventDefault();
   selectedBlockIndex = index;
   selectedBlock = currentBlocks[index];
-  draggedBlock = pieceToMatrix(selectedBlock);
 
-  // Bikin "bayangan" blok yang ikut jari
   dragGhost = document.createElement('div');
   dragGhost.style.position = 'fixed';
   dragGhost.style.pointerEvents = 'none';
@@ -309,7 +189,7 @@ function handleTouchStart(e, index) {
 
   document.body.appendChild(dragGhost);
   moveGhost(e.touches[0].clientX, e.touches[0].clientY);
-  renderBlocks(); // buat efek selected
+  renderBlocks();
 }
 
 function handleTouchMove(e) {
@@ -322,25 +202,21 @@ function handleTouchEnd(e) {
   e.preventDefault();
   if (!dragGhost) return;
 
-  // Cek posisi lepas di atas board atau nggak
   const boardRect = document.getElementById('board').getBoundingClientRect();
   const touch = e.changedTouches[0];
 
   if (touch.clientX >= boardRect.left && touch.clientX <= boardRect.right &&
       touch.clientY >= boardRect.top && touch.clientY <= boardRect.bottom) {
 
-    // Hitung posisi grid yang kena
     const cellSize = boardRect.width / boardSize;
     const gridX = Math.floor((touch.clientX - boardRect.left) / cellSize);
     const gridY = Math.floor((touch.clientY - boardRect.top) / cellSize);
 
-    // Coba taruh blok
     if (canPlaceBlock(selectedBlock, gridX, gridY)) {
       placeBlock(selectedBlock, gridX, gridY);
     }
   }
 
-  // Hapus ghost
   document.body.removeChild(dragGhost);
   dragGhost = null;
   selectedBlock = null;
@@ -355,149 +231,65 @@ function moveGhost(x, y) {
   }
 }
 
-function handleBoardClick(x, y) {
-  if (!selectedBlock) return;
-  if (canPlaceBlock(selectedBlock, x, y)) {
-    placeBlock(selectedBlock, x, y);
-  }
+function pieceToMatrix(piece) {
+  return piece.shape;
 }
 
-function canPlaceBlock(block, startX, startY) {
-  for (let y = 0; y < block.shape.length; y++) {
-    for (let x = 0; x < block.shape[0].length; x++) {
-      if (block.shape[y][x]) {
-        let bx = startX + x;
-        let by = startY + y;
-        if (bx < 0 || bx >= boardSize || by < 0 || by >= boardSize || board[by][bx]) {
-          return false;
-        }
+function canPlaceBlock(piece, x, y) {
+  const matrix = pieceToMatrix(piece);
+  for (let i = 0; i < matrix.length; i++) {
+    for (let j = 0; j < matrix[0].length; j++) {
+      if (matrix[i][j]) {
+        const nx = x + j;
+        const ny = y + i;
+        if (nx < 0 || nx >= boardSize || ny < 0 || ny >= boardSize) return false;
+        if (board[ny][nx]) return false;
       }
     }
   }
   return true;
 }
 
-function placeBlock(block, startX, startY) {
-  for (let y = 0; y < block.shape.length; y++) {
-    for (let x = 0; x < block.shape[0].length; x++) {
-      if (block.shape[y][x]) {
-        board[startY + y][startX + x] = block.color;
-        score += 10;
+function placeBlock(piece, x, y) {
+  const matrix = pieceToMatrix(piece);
+  for (let i = 0; i < matrix.length; i++) {
+    for (let j = 0; j < matrix[0].length; j++) {
+      if (matrix[i][j]) {
+        board[y + i][x + j] = piece.color;
       }
     }
   }
-  checkLines();
+
   currentBlocks.splice(selectedBlockIndex, 1);
-  selectedBlock = null;
-  selectedBlockIndex = -1;
+  score += 10;
+  document.getElementById('score').textContent = 'Skor: ' + score;
 
-  if (currentBlocks.length === 0) generateBlocks();
+  checkLines();
+  renderBoard();
 
-  updateScore();
-  renderBoard(); // <-- WAJIB DIPANGGIL SETELAH PLACE
-  renderBlocks();
-
-  if (gameMode === 'daily' && score >= targetScore) {
-    levelComplete();
-    return;
+  if (currentBlocks.length === 0) {
+    generateBlocks();
   }
-
-  if (!canPlaceAnyBlock()) gameOver();
 }
 
 function checkLines() {
   let linesCleared = 0;
-
-  for (let y = 0; y < boardSize; y++) {
+  for (let y = boardSize - 1; y >= 0; y--) {
     if (board[y].every(cell => cell!== 0)) {
-      board[y] = Array(boardSize).fill(0);
+      board.splice(y, 1);
+      board.unshift(Array(boardSize).fill(0));
       linesCleared++;
+      y++;
     }
   }
-
-  for (let x = 0; x < boardSize; x++) {
-    let full = true;
-    for (let y = 0; y < boardSize; y++) {
-      if (board[y][x] === 0) full = false;
-    }
-    if (full) {
-      for (let y = 0; y < boardSize; y++) board[y][x] = 0;
-      linesCleared++;
-    }
-  }
-
-  if (linesCleared > 0) score += linesCleared * 100;
-}
-
-function canPlaceAnyBlock() {
-  for (let block of currentBlocks) {
-    for (let y = 0; y < boardSize; y++) {
-      for (let x = 0; x < boardSize; x++) {
-        if (canPlaceBlock(block, x, y)) return true;
-      }
-    }
-  }
-  return false;
-}
-
-function renderBoard() {
-  const cells = document.querySelectorAll('#board .cell'); // ADA SPASI!
-
-  for (let y = 0; y < boardSize; y++) {
-    for (let x = 0; x < boardSize; x++) {
-      const index = y * boardSize + x;
-      const cell = cells[index];
-
-      if (!cell) continue; // jaga-jaga
-
-      if (board[y][x]) {
-        cell.className = 'cell filled';
-        cell.style.background = board[y][x];
-      } else {
-        cell.className = 'cell';
-        cell.style.background = '';
-      }
-    }
+  if (linesCleared > 0) {
+    score += linesCleared * 100;
+    document.getElementById('score').textContent = 'Skor: ' + score;
   }
 }
 
-function updateScore() {
-  document.getElementById('score').textContent = score;
-  if (score > highscore) {
-    highscore = score;
-    localStorage.setItem('blockblast_highscore', highscore);
-    document.getElementById('highscore').textContent = highscore;
-  }
-}
-
-function gameOver() {
-  document.getElementById('popupTitle').textContent = 'Game Over!';
-  document.getElementById('finalScore').textContent = score;
-  document.getElementById('popupBtn').textContent = 'Main Lagi';
-  document.getElementById('popupBtn').onclick = restartGame;
-  document.getElementById('popup').classList.add('active');
-}
-
-function levelComplete() {
-  document.getElementById('popupTitle').textContent = 'Level Selesai!';
-  document.getElementById('finalScore').textContent = score;
-  document.getElementById('popupBtn').textContent = dailyLevel < 30? 'Next Level' : 'Selesai';
-  document.getElementById('popupBtn').onclick = () => {
-    if (dailyLevel < 30) startDaily(dailyLevel + 1);
-    else quitGame();
-  };
-  document.getElementById('popup').classList.add('active');
-}
-
-function restartGame() {
-  document.getElementById('popup').classList.remove('active');
-  startGame();
-}
-
-function quitGame() {
-  document.getElementById('popup').classList.remove('active');
-  showScreen('mainMenu');
-}
+initBoard();
 </script>
+
 </body>
 </html>
