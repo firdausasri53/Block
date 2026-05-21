@@ -214,11 +214,11 @@ function handleTouchEnd(e) {
   const y = e.changedTouches[0].clientY;
    
 document.querySelectorAll('#board .cell').forEach(c => {
-  c.style.outline = '';
+  c.style.boxShadow = '';
 });
    
   if (highlightCell) {
-    highlightCell.style.outline = '';
+    highlightCell.style.boxShadow = '';
     highlightCell = null;
   }
 
@@ -248,15 +248,15 @@ document.querySelectorAll('#board .cell').forEach(c => {
 
 function highlightTarget(x, y) {
   // Hapus highlight lama dulu
-  document.querySelectorAll('#board.cell').forEach(c => {
-    c.style.outline = '';
+  document.querySelectorAll('#board .cell').forEach(c => {
+    c.style.boxShadow = outlineColor;
   });
   highlightCell = null;
 
   const target = document.elementFromPoint(x, y);
   if (!target ||!target.classList.contains('cell')) return;
 
-  const allCells = Array.from(document.querySelectorAll('#board.cell'));
+  const allCells = Array.from(document.querySelectorAll('#board .cell'));
   const index = allCells.indexOf(target);
   if (index === -1) return;
 
@@ -289,10 +289,10 @@ function highlightTarget(x, y) {
   });
 
   // Kasih warna outline: hijau kalau bisa, merah kalau gak bisa
-  const outlineColor = canPlace? '2px solid #00ff88' : '2px solid red';
-  highlightCells.forEach(c => {
-    c.style.outline = outlineColor;
-  });
+  const outlineColor = canPlace ? '0 0 0 3px #00ff88' : '0 0 0 3px red';
+highlightCells.forEach(c => {
+  c.style.boxShadow = outlineColor;
+});
 
   highlightCell = highlightCells[0]; // biar bisa di-reset pas touchend
 }
