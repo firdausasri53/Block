@@ -229,41 +229,31 @@ function canPlaceShape(startIndex, shape) {
   return cells.every(i => board[Math.floor(i / boardSize)][i % boardSize] === 0);
 }
 function handleTouchEnd(e) {
+  if (!selectedBlock) return;
+
   e.preventDefault();
-  if (!dragGhost) return;
+  const touch = e.changedTouches[0];
+  const x = touch.clientX;
+  const y = touch.clientY;
 
-  const x = e.changedTouches[0].clientX;
-  const y = e.changedTouches[0].clientY;
-
-  document.querySelectorAll('#board.cell').forEach(c => {
-    c.style.outline = '';
-  });
-
-  if (highlightCell) {
-    highlightCell.style.outline = '';
-    highlightCell = null;
-  }
-
-  document.body.removeChild(dragGhost);
-  dragGhost = null;
-
+  // Cari elemen cell yang ketimpa jari pas dilepas
   const target = document.elementFromPoint(x, y);
 
-if (target && target.classList.contains('cell')) {
-  const allCells = Array.from(document.querySelectorAll('#board.cell'));
-  const index = allCells.indexOf(target);
+  if (target && target.classList.contains('cell')) {
+    const allCells = Array.from(document.querySelectorAll('#board .cell'));
+    const index = allCells.indexOf(target);
 
-  if (index!== -1) {
-    if (canPlaceShape(index, selectedBlock.shape)) {
-      placeBlock(selectedBlock, index % boardSize, Math.floor(index / boardSize));
+    if (index!== -1 && canPlaceShape(index, selectedBlock.shape)) {
+      placeBlock(selectedBlock.shape, index);
     }
   }
-}
-  selectedBlock = null;
-  selectedBlockIndex = -1;
-  renderBlocks();
-}
 
+  // Reset state drag
+  selectedBlock = null;
+  selectedBlockIndex = null;
+  document.querySelectorAll('.block.dragging').forEach(el => el.remove());
+  document.querySelectorAll('.cell').forEach(c => c.classList.remove('highlight'));
+}
 function highlightTarget(x, y) {
   if (highlightCell) {
     highlightCell.style.outline = '';
