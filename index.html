@@ -14,6 +14,7 @@
     flex-direction: column;
     align-items: center;
     padding: 20px;
+    user-select: none;
   }
 
   #score {
@@ -56,6 +57,11 @@
     display: grid;
     gap: 2px;
     touch-action: none;
+    cursor: grab;
+  }
+
+.block:active {
+    cursor: grabbing;
   }
 
 .block-cell {
@@ -142,33 +148,39 @@ function renderBlocks() {
       });
     });
 
-    blockEl.addEventListener('touchstart', e => handleTouchStart(e, block, idx));
-    blockEl.addEventListener('touchmove', handleTouchMove);
-    blockEl.addEventListener('touchend', handleTouchEnd);
+    // Touch untuk HP
+    blockEl.addEventListener('touchstart', e => handleStart(e, block, idx));
+    blockEl.addEventListener('touchmove', handleMove);
+    blockEl.addEventListener('touchend', handleEnd);
+
+    // Mouse untuk laptop
+    blockEl.addEventListener('mousedown', e => handleStart(e, block, idx));
+    blockEl.addEventListener('mousemove', handleMove);
+    blockEl.addEventListener('mouseup', handleEnd);
+    blockEl.addEventListener('mouseleave', handleEnd);
 
     blocksEl.appendChild(blockEl);
   });
 }
 
-function handleTouchStart(e, block, idx) {
+function handleStart(e, block, idx) {
+  e.preventDefault();
   selectedBlock = block;
   selectedBlockIndex = idx;
   const clone = e.currentTarget.cloneNode(true);
   clone.classList.add('dragging');
   document.body.appendChild(clone);
   selectedBlock.el = clone;
+  moveBlock(e);
 }
 
-function handleTouchMove(e) {
+function handleMove(e) {
   if (!selectedBlock) return;
   e.preventDefault();
-
-  const touch = e.touches[0];
-  const el = selectedBlock.el;
-  el.style.left = touch.clientX - el.offsetWidth / 2 + 'px';
-  el.style.top = touch.clientY - el.offsetHeight / 2 + 'px';
-
-  const target = document.elementFromPoint(touch.clientX, touch.clientY);
+  moveBlock(e);
+  
+  const pos = getPosition(e);
+  const target = document.elementFromPoint(pos.x, pos.y);
   document.querySelectorAll('.cell').forEach(c => c.classList.remove('highlight'));
 
   if (target && target.classList.contains('cell')) {
@@ -183,12 +195,11 @@ function handleTouchMove(e) {
   }
 }
 
-function handleTouchEnd(e) {
+function handleEnd(e) {
   if (!selectedBlock) return;
 
-  e.preventDefault();
-  const touch = e.changedTouches[0];
-  const target = document.elementFromPoint(touch.clientX, touch.clientY);
+  const pos = getPosition(e);
+  const target = document.elementFromPoint(pos.x, pos.y);
 
   if (target && target.classList.contains('cell')) {
     const allCells = Array.from(document.querySelectorAll('#board.cell'));
@@ -203,6 +214,20 @@ function handleTouchEnd(e) {
   selectedBlockIndex = null;
   document.querySelectorAll('.block.dragging').forEach(el => el.remove());
   document.querySelectorAll('.cell').forEach(c => c.classList.remove('highlight'));
+}
+
+function getPosition(e) {
+  if (e.touches && e.touches[0]) {
+    return {x: e.touches[0].clientX, y: e.touches[0].clientY};
+  }
+  return {x: e.clientX, y: e.clientY};
+}
+
+function moveBlock(e) {
+  const pos = getPosition(e);
+  const el = selectedBlock.el;
+  el.style.left = pos.x - el.offsetWidth / 2 + 'px';
+  el.style.top = pos.y - el.offsetHeight / 2 + 'px';
 }
 
 function getShapeCells(startIndex, shape) {
@@ -278,6 +303,5 @@ function checkLines() {
 
 init();
 </script>
-
 </body>
 </html>
