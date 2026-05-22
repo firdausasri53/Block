@@ -38,10 +38,12 @@
     aspect-ratio: 1;
     background: #222;
     border-radius: 4px;
+    box-sizing: border-box;
   }
 
 .cell.highlight {
-    background: rgba(255, 255, 0, 0.6);
+    background: rgba(255, 255, 0, 0.7)!important;
+    border: 2px solid yellow;
   }
 
   #blocks {
@@ -60,21 +62,17 @@
     cursor: grab;
   }
 
-.block:active {
-    cursor: grabbing;
+.block.dragging {
+    position: fixed;
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.8;
   }
 
 .block-cell {
     width: 28px;
     height: 28px;
     border-radius: 3px;
-  }
-
-.block.dragging {
-    position: fixed;
-    pointer-events: none;
-    z-index: 1000;
-    opacity: 0.8;
   }
 </style>
 </head>
@@ -86,7 +84,7 @@
 
 <script>
 const boardSize = 8;
-let board = Array.from({length: boardSize}, () => Array(boardSize).fill(0));
+let board = [];
 let score = 0;
 let selectedBlock = null;
 let selectedBlockIndex = null;
@@ -102,6 +100,10 @@ const shapes = [
 ];
 
 function init() {
+  // Reset board beneran
+  board = Array.from({length: boardSize}, () => Array(boardSize).fill(0));
+  score = 0;
+  document.getElementById('score').textContent = 'Skor: 0';
   renderBoard();
   generateBlocks();
   renderBlocks();
@@ -148,12 +150,10 @@ function renderBlocks() {
       });
     });
 
-    // Touch untuk HP
     blockEl.addEventListener('touchstart', e => handleStart(e, block, idx));
     blockEl.addEventListener('touchmove', handleMove);
     blockEl.addEventListener('touchend', handleEnd);
 
-    // Mouse untuk laptop
     blockEl.addEventListener('mousedown', e => handleStart(e, block, idx));
     blockEl.addEventListener('mousemove', handleMove);
     blockEl.addEventListener('mouseup', handleEnd);
@@ -251,11 +251,16 @@ function getShapeCells(startIndex, shape) {
 function canPlaceShape(startIndex, shape) {
   const cells = getShapeCells(startIndex, shape);
   if (cells.length === 0) return false;
-  return cells.every(i => board[Math.floor(i / boardSize)][i % boardSize] === 0);
+  return cells.every(i => {
+    const r = Math.floor(i / boardSize);
+    const c = i % boardSize;
+    return board[r] && board[r][c] === 0;
+  });
 }
 
 function placeBlock(shape, startIndex) {
   const cells = getShapeCells(startIndex, shape);
+  if (cells.length === 0) return;
 
   cells.forEach(i => {
     const row = Math.floor(i / boardSize);
