@@ -5,206 +5,205 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Block Puzzle</title>
 <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    background: #1a1a2e;
+    margin: 0;
+    font-family: sans-serif;
+    background: #1a1a1a;
     color: white;
-    font-family: Arial, sans-serif;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 10px;
-    min-height: 100vh;
-    touch-action: none;
+    padding: 20px;
   }
-  h1 { margin-bottom: 10px; font-size: 24px; }
-  #score { font-size: 20px; margin-bottom: 10px; }
+
+  #score {
+    font-size: 24px;
+    margin-bottom: 15px;
+  }
 
   #board {
     display: grid;
     grid-template-columns: repeat(8, 1fr);
-    gap: 4px;
-    background: #16213e;
-    padding: 8px;
-    border-radius: 12px;
+    gap: 2px;
+    background: #333;
+    padding: 5px;
+    border-radius: 8px;
     width: 90vw;
-    max-width: 360px;
-    touch-action: none;
+    max-width: 400px;
   }
 
  .cell {
     width: 100%;
     aspect-ratio: 1;
-    background: #0f3460;
-    border-radius: 6px;
+    background: #222;
+    border-radius: 4px;
   }
 
- .cell.filled { background: #e94560; }
+ .cell.highlight {
+    background: rgba(255, 255, 0, 0.5);
+  }
 
-  #blocksContainer {
+  #blocks {
     display: flex;
     gap: 15px;
     margin-top: 20px;
-    justify-content: center;
     flex-wrap: wrap;
+    justify-content: center;
   }
 
- .block-piece {
+ .block {
     display: grid;
-    gap: 4px;
-    padding: 8px;
-    border-radius: 10px;
-    cursor: pointer;
+    gap: 2px;
     touch-action: none;
-    background: rgba(255,255,255,0.1);
-  }
-
- .block-piece.selected {
-    background: rgba(255,255,255,0.3);
-    outline: 2px solid #00ff88;
   }
 
  .block-cell {
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
+    width: 25px;
+    height: 25px;
+    border-radius: 3px;
+  }
+
+ .block.dragging {
+    position: fixed;
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.8;
   }
 </style>
 </head>
 <body>
 
-<h1>Block Puzzle</h1>
 <div id="score">Skor: 0</div>
 <div id="board"></div>
-<div id="blocksContainer"></div>
+<div id="blocks"></div>
 
 <script>
 const boardSize = 8;
-let board = [];
+let board = Array.from({length: boardSize}, () => Array(boardSize).fill(0));
 let score = 0;
-let currentBlocks = [];
 let selectedBlock = null;
-let selectedBlockIndex = -1;
+let selectedBlockIndex = null;
+let currentBlocks = [];
 
-let dragGhost = null;
-let highlightCell = null;
+const shapes = [
+  {shape: [[1,1],[1,1]], color: '#ff5252'},
+  {shape: [[1,1,1],[0,0,1]], color: '#4caf50'},
+  {shape: [[1,1,1,1]], color: '#2196f3'},
+  {shape: [[1,1,0],[0,1,1]], color: '#ff9800'},
+  {shape: [[1],[1],[1]], color: '#9c27b0'},
+  {shape: [[1]], color: '#00bcd4'}
+];
 
-function initBoard() {
-  board = Array(boardSize).fill(null).map(() => Array(boardSize).fill(0));
-  const boardEl = document.getElementById('board');
-  boardEl.innerHTML = '';
-  for (let i = 0; i < boardSize * boardSize; i++) {
-    const cell = document.createElement('div');
-    cell.className = 'cell';
-    boardEl.appendChild(cell);
-  }
-  generateBlocks();
+function init() {
   renderBoard();
-}
-
-function generateBlocks() {
-  const shapes = [
-    {shape: [[1,1],[1,1]], color: '#e94560'},
-    {shape: [[1,1,1],[0,1,0]], color: '#00ff88'},
-    {shape: [[1,1,1,1]], color: '#00d9ff'},
-    {shape: [[1,0],[1,1],[0,1]], color: '#ffa500'},
-    {shape: [[1]], color: '#ff6b6b'}
-  ];
-  currentBlocks = [];
-  for (let i = 0; i < 3; i++) {
-    const random = shapes[Math.floor(Math.random() * shapes.length)];
-    currentBlocks.push({...random});
-  }
+  generateBlocks();
   renderBlocks();
 }
 
 function renderBoard() {
-  const cells = document.querySelectorAll('#board.cell');
-  for (let y = 0; y < boardSize; y++) {
-    for (let x = 0; x < boardSize; x++) {
-      const index = y * boardSize + x;
-      if (!cells[index]) continue;
-
-      if (board[y][x]) {
-        cells[index].classList.add('filled');
-        cells[index].style.background = board[y][x];
-      } else {
-        cells[index].classList.remove('filled');
-        cells[index].style.background = '';
+  const boardEl = document.getElementById('board');
+  boardEl.innerHTML = '';
+  for (let r = 0; r < boardSize; r++) {
+    for (let c = 0; c < boardSize; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      if (board[r][c]!== 0) {
+        cell.style.background = board[r][c];
       }
+      boardEl.appendChild(cell);
     }
   }
 }
 
-function renderBlocks() {
-  const container = document.getElementById('blocksContainer');
-  container.innerHTML = '';
+function generateBlocks() {
+  currentBlocks = [];
+  for (let i = 0; i < 3; i++) {
+    const random = shapes[Math.floor(Math.random() * shapes.length)];
+    currentBlocks.push(JSON.parse(JSON.stringify(random)));
+  }
+}
 
-  currentBlocks.forEach((block, index) => {
-    const piece = document.createElement('div');
-    piece.className = 'block-piece';
-    if (index === selectedBlockIndex) piece.classList.add('selected');
-    piece.style.gridTemplateColumns = `repeat(${block.shape[0].length}, 1fr)`;
+function renderBlocks() {
+  const blocksEl = document.getElementById('blocks');
+  blocksEl.innerHTML = '';
+
+  currentBlocks.forEach((block, idx) => {
+    const blockEl = document.createElement('div');
+    blockEl.className = 'block';
+    blockEl.style.gridTemplateColumns = `repeat(${block.shape[0].length}, 1fr)`;
 
     block.shape.forEach(row => {
       row.forEach(cell => {
-        const div = document.createElement('div');
-        if (cell) {
-          div.className = 'block-cell';
-          div.style.background = block.color;
-        }
-        piece.appendChild(div);
+        const cellEl = document.createElement('div');
+        cellEl.className = 'block-cell';
+        cellEl.style.background = cell? block.color : 'transparent';
+        blockEl.appendChild(cellEl);
       });
     });
 
-    piece.addEventListener('touchstart', (e) => handleTouchStart(e, index), {passive: false});
-    piece.addEventListener('touchmove', (e) => handleTouchMove(e), {passive: false});
-    piece.addEventListener('touchend', (e) => handleTouchEnd(e), {passive: false});
+    blockEl.addEventListener('touchstart', e => handleTouchStart(e, block, idx));
+    blockEl.addEventListener('touchmove', handleTouchMove);
+    blockEl.addEventListener('touchend', handleTouchEnd);
 
-    container.appendChild(piece);
+    blocksEl.appendChild(blockEl);
   });
 }
 
-function handleTouchStart(e, index) {
-  e.preventDefault();
-  selectedBlockIndex = index;
-  selectedBlock = currentBlocks[index];
-
-  dragGhost = document.createElement('div');
-  dragGhost.style.position = 'fixed';
-  dragGhost.style.pointerEvents = 'none';
-  dragGhost.style.opacity = '0.7';
-  dragGhost.style.zIndex = '100';
-  dragGhost.style.display = 'grid';
-  dragGhost.style.gap = '4px';
-  dragGhost.style.gridTemplateColumns = `repeat(${selectedBlock.shape[0].length}, 1fr)`;
-
-  selectedBlock.shape.forEach(row => {
-    row.forEach(cell => {
-      const div = document.createElement('div');
-      div.style.width = '28px';
-      div.style.height = '28px';
-      div.style.borderRadius = '6px';
-      if (cell) div.style.background = selectedBlock.color;
-      dragGhost.appendChild(div);
-    });
-  });
-
-  document.body.appendChild(dragGhost);
-  moveGhost(e.touches[0].clientX, e.touches[0].clientY);
-  renderBlocks();
+function handleTouchStart(e, block, idx) {
+  selectedBlock = block;
+  selectedBlockIndex = idx;
+  const clone = e.target.cloneNode(true);
+  clone.classList.add('dragging');
+  document.body.appendChild(clone);
+  selectedBlock.el = clone;
 }
 
 function handleTouchMove(e) {
+  if (!selectedBlock) return;
   e.preventDefault();
-  if (!dragGhost) return;
 
-  const x = e.touches[0].clientX;
-  const y = e.touches[0].clientY;
+  const touch = e.touches[0];
+  const el = selectedBlock.el;
+  el.style.left = touch.clientX - el.offsetWidth / 2 + 'px';
+  el.style.top = touch.clientY - el.offsetHeight / 2 + 'px';
 
-  moveGhost(x, y);
-  highlightTarget(x, y);
+  const target = document.elementFromPoint(touch.clientX, touch.clientY);
+  document.querySelectorAll('.cell').forEach(c => c.classList.remove('highlight'));
+
+  if (target && target.classList.contains('cell')) {
+    const allCells = Array.from(document.querySelectorAll('#board.cell'));
+    const index = allCells.indexOf(target);
+    if (index!== -1 && canPlaceShape(index, selectedBlock.shape)) {
+      const cells = getShapeCells(index, selectedBlock.shape);
+      cells.forEach(i => {
+        if (allCells[i]) allCells[i].classList.add('highlight');
+      });
+    }
+  }
 }
+
+function handleTouchEnd(e) {
+  if (!selectedBlock) return;
+
+  e.preventDefault();
+  const touch = e.changedTouches[0];
+  const target = document.elementFromPoint(touch.clientX, touch.clientY);
+
+  if (target && target.classList.contains('cell')) {
+    const allCells = Array.from(document.querySelectorAll('#board.cell'));
+    const index = allCells.indexOf(target);
+
+    if (index!== -1 && canPlaceShape(index, selectedBlock.shape)) {
+      placeBlock(selectedBlock.shape, index);
+    }
+  }
+
+  selectedBlock = null;
+  selectedBlockIndex = null;
+  document.querySelectorAll('.block.dragging').forEach(el => el.remove());
+  document.querySelectorAll('.cell').forEach(c => c.classList.remove('highlight'));
+}
+
 function getShapeCells(startIndex, shape) {
   const cells = [];
   const startRow = Math.floor(startIndex / boardSize);
@@ -228,112 +227,57 @@ function canPlaceShape(startIndex, shape) {
   if (cells.length === 0) return false;
   return cells.every(i => board[Math.floor(i / boardSize)][i % boardSize] === 0);
 }
-function handleTouchEnd(e) {
-  if (!selectedBlock) return;
 
-  e.preventDefault();
-  const touch = e.changedTouches[0];
-  const x = touch.clientX;
-  const y = touch.clientY;
+function placeBlock(shape, startIndex) {
+  const cells = getShapeCells(startIndex, shape);
 
-  console.log("Lepas di koordinat:", x, y);
-
-  const target = document.elementFromPoint(x, y);
-  console.log("Target element:", target);
-
-  if (target && target.classList.contains('cell')) {
-    const allCells = Array.from(document.querySelectorAll('#board.cell'));
-    const index = allCells.indexOf(target);
-
-    console.log("Index cell:", index);
-    console.log("Bisa ditempatin:", canPlaceShape(index, selectedBlock.shape));
-
-    if (index!== -1 && canPlaceShape(index, selectedBlock.shape)) {
-      placeBlock(selectedBlock.shape, index);
-    } else {
-      console.log("Gagal: area kepake atau index -1");
-    }
-  } else {
-    console.log("Gagal: bukan cell");
-  }
-
-  selectedBlock = null;
-  selectedBlockIndex = null;
-  document.querySelectorAll('.block.dragging').forEach(el => el.remove());
-  document.querySelectorAll('.cell').forEach(c => c.classList.remove('highlight'));
-}
-function highlightTarget(x, y) {
-  if (highlightCell) {
-    highlightCell.style.outline = '';
-  }
-  const target = document.elementFromPoint(x, y);
-  if (target && target.classList.contains('cell')) {
-    target.style.outline = '2px solid yellow';
-    highlightCell = target;
-  }
-}
-
-function moveGhost(x, y) {
-  if (dragGhost) {
-    dragGhost.style.left = (x - dragGhost.offsetWidth / 2) + 'px';
-    dragGhost.style.top = (y - dragGhost.offsetHeight / 2) + 'px';
-  }
-}
-
-function canPlaceBlock(piece, x, y) {
-  const matrix = piece.shape;
-  for (let i = 0; i < matrix.length; i++) {
-    for (let j = 0; j < matrix[0].length; j++) {
-      if (matrix[i][j]) {
-        const nx = x + j;
-        const ny = y + i;
-        if (nx < 0 || nx >= boardSize || ny < 0 || ny >= boardSize) return false;
-        if (board[ny][nx]) return false;
-      }
-    }
-  }
-  return true;
-}
-
-function placeBlock(piece, x, y) {
-  const matrix = piece.shape;
-  for (let i = 0; i < matrix.length; i++) {
-    for (let j = 0; j < matrix[0].length; j++) {
-      if (matrix[i][j]) {
-        board[y + i][x + j] = piece.color;
-      }
-    }
-  }
+  cells.forEach(i => {
+    const row = Math.floor(i / boardSize);
+    const col = i % boardSize;
+    board[row][col] = shape.color;
+  });
 
   currentBlocks.splice(selectedBlockIndex, 1);
-  score += 10;
+  score += cells.length;
   document.getElementById('score').textContent = 'Skor: ' + score;
 
   checkLines();
   renderBoard();
+  renderBlocks();
 
   if (currentBlocks.length === 0) {
     generateBlocks();
+    renderBlocks();
   }
 }
 
 function checkLines() {
-  let linesCleared = 0;
-  for (let y = boardSize - 1; y >= 0; y--) {
-    if (board[y].every(cell => cell!== 0)) {
-      board.splice(y, 1);
-      board.unshift(Array(boardSize).fill(0));
-      linesCleared++;
-      y++;
+  // Cek baris
+  for (let r = 0; r < boardSize; r++) {
+    if (board[r].every(cell => cell!== 0)) {
+      board[r] = Array(boardSize).fill(0);
+      score += 100;
     }
   }
-  if (linesCleared > 0) {
-    score += linesCleared * 100;
-    document.getElementById('score').textContent = 'Skor: ' + score;
+
+  // Cek kolom
+  for (let c = 0; c < boardSize; c++) {
+    let full = true;
+    for (let r = 0; r < boardSize; r++) {
+      if (board[r][c] === 0) full = false;
+    }
+    if (full) {
+      for (let r = 0; r < boardSize; r++) {
+        board[r][c] = 0;
+      }
+      score += 100;
+    }
   }
+
+  document.getElementById('score').textContent = 'Skor: ' + score;
 }
 
-document.addEventListener('DOMContentLoaded', initBoard);
+init();
 </script>
 
 </body>
