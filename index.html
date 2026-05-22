@@ -236,19 +236,27 @@ function handleTouchEnd(e) {
   const x = touch.clientX;
   const y = touch.clientY;
 
-  // Cari elemen cell yang ketimpa jari pas dilepas
+  console.log("Lepas di koordinat:", x, y);
+
   const target = document.elementFromPoint(x, y);
+  console.log("Target element:", target);
 
   if (target && target.classList.contains('cell')) {
-    const allCells = Array.from(document.querySelectorAll('#board .cell'));
+    const allCells = Array.from(document.querySelectorAll('#board.cell'));
     const index = allCells.indexOf(target);
+
+    console.log("Index cell:", index);
+    console.log("Bisa ditempatin:", canPlaceShape(index, selectedBlock.shape));
 
     if (index!== -1 && canPlaceShape(index, selectedBlock.shape)) {
       placeBlock(selectedBlock.shape, index);
+    } else {
+      console.log("Gagal: area kepake atau index -1");
     }
+  } else {
+    console.log("Gagal: bukan cell");
   }
 
-  // Reset state drag
   selectedBlock = null;
   selectedBlockIndex = null;
   document.querySelectorAll('.block.dragging').forEach(el => el.remove());
